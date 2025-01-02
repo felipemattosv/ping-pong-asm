@@ -24,119 +24,115 @@ segment code
     	MOV     AL,12h
    		MOV     AH,0
     	INT     10h
-		
-;desenhar retas
-       
-		MOV		byte [cor],branco_intenso	;linha
-		MOV		AX,20                   	;x1
-		PUSH	AX
-		MOV		AX,400                  	;y1
-		PUSH	AX
-		MOV		AX,620                  	;x2
-		PUSH	AX
-		MOV		AX,400                  	;y2
-		PUSH	AX
-		CALL	line
-			
-		MOV		byte [cor],marrom			;antenas
-		MOV		AX,130
-		PUSH	AX
-		MOV		AX,270
-		PUSH	AX
-		MOV		AX,100
-		PUSH	AX
-		MOV		AX,300
-		PUSH	AX
-		CALL	line
-		
-		MOV		AX,130
-		PUSH	AX
-		MOV		AX,130
-		PUSH	AX
-		MOV		AX,100
-		PUSH	AX
-		MOV		AX,100
-		PUSH	AX
-		CALL	line
-		
-;desenha circulos 
-		MOV		byte [cor],azul				;cabeça
-		MOV		AX,200						;x
-		PUSH	AX
-		MOV		AX,200						;y
-		PUSH	AX
-		MOV		AX,100						;r
-		PUSH	AX
-		CALL	circle
 
-		MOV		byte [cor],verde			;corpo
-		MOV		AX,450
-		PUSH	AX
-		MOV		AX,200
-		PUSH	AX
-		MOV		AX,190
-		PUSH	AX
-		CALL	circle
-		
-		MOV		AX,100						;circulos das antenas
-		PUSH	AX
-		MOV		AX,100
-		PUSH	AX
-		MOV		AX,10
-		PUSH	AX
-		CALL	circle
-		
-		MOV		AX,100
-		PUSH	AX
-		MOV		AX,300
-		PUSH	AX
-		MOV		AX,10
-		PUSH	AX
-		CALL	circle
-		
-		MOV		byte [cor],vermelho			;circulos vermelhos
-		MOV		AX,500
-		PUSH	AX
-		MOV		AX,300
-		PUSH	AX
-		MOV		AX,50
-		PUSH	AX
-		CALL	full_circle
-		
-		MOV		AX,500
-		PUSH	AX
-		MOV		AX,100
-		PUSH	AX
-		MOV		AX,50
-		PUSH	AX
-		CALL	full_circle
-		
-		MOV		AX,350
-		PUSH	AX
-		MOV		AX,200
-		PUSH	AX
-		MOV		AX,50
-		PUSH	AX
-		CALL	full_circle
-		
-;escrever uma mensagem
-MSN: 
-		MOV 	CX,14						;número de caracteres
-    	MOV    	BX,0			
-    	MOV    	DH,0						;linha 0-29
-    	MOV     DL,30						;coluna 0-79
-		MOV		byte [cor],azul
-l4:
+
+;Gera menu
+MENU:
+		MOV 	CX,30						;número de caracteres
+		MOV    	BX,0
+		MOV		byte [cor],branco_intenso
+		MOV    	DH,25						;linha 0-29
+    	MOV     DL,24						;coluna 0-79
+
+INSTRUCAO:									;printa a instrucao de selecao
 		CALL	cursor
-		;MOV     DI,DS
-    	MOV     AL,[BX+mens]
+		MOV     DI,DS
+    	MOV     AL,[BX+menu_instruc]
 		
 		CALL	caracter
     	INC		BX							;proximo caracter
 		INC		DL							;avanca a coluna
-		INC		byte[cor]					;mudar a cor para a seguinte
-    	LOOP    l4
+    	LOOP    INSTRUCAO
 
+
+		MOV 	CX,5	
+    	MOV    	DH,15						;linha 0-29
+    	MOV     DL,16						;coluna 0-79
+		MOV		BX,0
+		
+
+FACIL:                                      ;escreve a dificuldade facil
+		CALL	cursor
+    	MOV     AL,[BX+menu_facil]
+		
+		CALL	caracter
+    	INC		BX							;proximo caracter
+		INC		DL							;avanca a coluna
+    	LOOP    FACIL
+		MOV		CX,5
+		MOV		DL,36
+		MOV    	BX,0
+
+MEDIO:										;printa a dificuldade media
+		CALL	cursor
+    	MOV     AL,[BX+menu_medio]
+		
+		CALL	caracter
+    	INC		BX							;proximo caracter
+		INC		DL							;avanca a coluna
+    	LOOP    MEDIO
+		MOV		CX,7
+		MOV		DL,56
+		MOV    	BX,0
+
+DIFICIL:									;printa a dificuldade dificil
+		CALL	cursor
+    	MOV     AL,[BX+menu_dificil]
+		
+		CALL	caracter
+    	INC		BX							;proximo caracter
+		INC		DL							;avanca a coluna
+    	LOOP    DIFICIL
+		MOV 	DL,14						;salva informaçoes para printar a seta de  seleçao
+		MOV		BX,0
+SELECAO:
+		MOV		byte [cor],branco_intenso
+		CALL	cursor
+    	MOV     AL,[BX+selecao]
+		CALL	caracter
+
+		MOV 	AH, 00h        				; Função 00h do INT 16h, para leitura do teclado
+    	INT 	16h
+		CMP		AH,4Dh						;seta para a direita foi apertada
+		JE		TROCA_DIREITA
+		CMP		AH,4Bh						; seta para a esquerda foi apertada
+		JE		TROCA_ESQUERDA
+		CMP		AH, 1Ch						; enter foi apertado
+		JE		JOGO
+		JMP 	SELECAO
+
+TROCA_DIREITA:
+		MOV		byte [cor],preto			;apaga seta		
+		CALL	cursor
+    	MOV     AL,[BX+selecao]
+		CALL	caracter
+
+		CMP		DL, 53						; compara para saber se esta na ultima dificuldade selecionavel
+		JG		volta_dir
+		ADD		DL, 20						; pula pra proxima dificuldade
+		JMP		SELECAO
+
+volta_dir:									; da a volta pela direita para a primeira dificuldade
+		MOV		DL,14
+		JMP		SELECAO
+
+TROCA_ESQUERDA:
+		MOV		byte [cor],preto			;apaga seta		
+		CALL	cursor
+    	MOV     AL,[BX+selecao]
+		CALL	caracter
+
+		CMP		DL,20						; compara para saber se esta na primeira dificuldade selecionavel
+		JL		volta_esq
+		SUB		DL, 20						; pula pra dificuldade anterior
+		JMP		SELECAO
+
+volta_esq:	
+		MOV		DL,54						; da a volta pela direita para a ultima dificuldade
+		JMP		SELECAO
+
+JOGO:			;inicia o jogo, a dificuldade depende do valor de DL
+;sai do modo de video		
 		MOV    	AH,08h
 		INT     21h
 	    MOV  	AH,0   						; set video mode
@@ -191,8 +187,12 @@ linha   	    dw  	0
 coluna  	    dw  	0
 deltax		    dw		0
 deltay		    dw		0	
-mens    	    db  	'Funcao Grafica SE_I $' 
-
+mens    		db  	'Funcao Grafica SE_I $' 
+menu_facil		db 		'Facil $'
+menu_medio 		db		'Medio $'
+menu_dificil 	db		'Dificil $'
+menu_instruc	db		'Aperte [ENTER] para selecionar $'
+selecao			db 		'> $'
 ;*************************************************************************
 segment stack stack
 		DW 		512
