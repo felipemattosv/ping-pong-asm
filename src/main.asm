@@ -131,7 +131,47 @@ volta_esq:
 		MOV		DL,54						; da a volta pela direita para a ultima dificuldade
 		JMP		SELECAO
 
-JOGO:			;inicia o jogo, a dificuldade depende do valor de DL
+
+;inicia o jogo, a dificuldade depende do valor de DL
+JOGO:		
+		;cria linha delimitadora inferior 
+		XOR 	AX, AX
+		MOV 	AX, 40
+		PUSH 	AX
+		MOV 	AX, 40
+		PUSH 	AX
+		MOV 	AX, 600
+		PUSH 	AX
+		MOV 	AX, 40
+		PUSH 	AX
+		CALL 	line
+
+		;cria linha delimitadora superior
+		MOV 	AX, 40
+		PUSH 	AX
+		MOV 	AX, 440
+		PUSH 	AX
+		MOV 	AX, 600
+		PUSH 	AX
+		MOV 	AX, 440
+		PUSH 	AX
+		CALL 	line
+
+		;apaga a seleçao de dificuldade
+		MOV		byte [cor],preto
+		;passa x1, y1 e x2, y2
+		MOV 	AX, 40
+		PUSH 	AX
+		MOV 	AX, 41
+		PUSH	AX
+		MOV		AX, 600
+		PUSH	AX
+		MOV		AX, 439
+		CALL	RETANGULO
+		
+		
+
+FIM:
 ;sai do modo de video		
 		MOV    	AH,08h
 		INT     21h
@@ -140,7 +180,43 @@ JOGO:			;inicia o jogo, a dificuldade depende do valor de DL
 	    INT  	10h
 		MOV     AX,4c00h
 		INT     21h
-		
+
+;desenha um retangulo preenchido. A cor ja deve estar definida.
+RETANGULO:
+		PUSH	BP
+		MOV		BP, SP
+
+		;salva o contexto
+		PUSHF
+		PUSH 	AX
+		PUSH 	BX
+		PUSH 	CX
+		PUSH 	DX
+
+		MOV		AX, [BP+8]			;x1
+		MOV		BX, [BP+6]			;y1
+		MOV		CX, [BP+4]			;x2
+		MOV		DX, [BP+2]			;y2
+
+PREENCHE:
+		PUSH	AX
+		PUSH	BX
+		PUSH	AX
+		PUSH	DX
+		CALL line
+		INC AX
+		CMP	AX, CX
+		JL	PREENCHE
+
+		;retorna contexto e sai da funçao
+		POP 	DX
+		POP 	CX
+		POP 	BX
+		POP 	AX
+		POPF
+		POP 	BP
+		RET
+
 ;*******************************************************************
 
 segment data
