@@ -1,6 +1,6 @@
 ; Felipe Albuquerque e Jordano Furtado
 
-extern line, full_circle, circle, cursor, caracter, plot_xy 
+extern line, full_circle, circle, cursor, caracter, plot_xy, RETANGULO, DESENHA_BLOCOS_P1_E_P2
 global cor
 
 segment code
@@ -78,7 +78,7 @@ DIFICIL:
     INC	BX ;proximo caracter
 		INC	DL ;avanca a coluna
     LOOP DIFICIL
-		MOV DL, 14 ;salva informaçoes para printar a seta de  seleçao
+		MOV DL, 14 ;salva informaçoes para printar a seta de seleçao
 		MOV	BX, 0
 
 SELECAO:
@@ -161,10 +161,14 @@ JOGO:
 		MOV		AX, 600
 		PUSH	AX
 		MOV		AX, 439
-		CALL	RETANGULO
+    PUSH  AX
+		CALL RETANGULO
+
+    ;desenha os blocos dos jogadores
+    CALL DESENHA_BLOCOS_P1_E_P2
 
 FIM:
-;sai do modo de video		
+;sai do modo de video
 		MOV AH, 08h
 		INT 21h
 	  MOV AH, 0   						; set video mode
@@ -173,82 +177,13 @@ FIM:
 		MOV AX, 4c00h
 		INT 21h
 
-;desenha um retangulo preenchido. A cor ja deve estar definida.
-RETANGULO:
-		PUSH	BP
-		MOV		BP, SP
-
-		;salva o contexto
-		PUSHF
-		PUSH AX
-		PUSH BX
-		PUSH CX
-		PUSH DX
-
-		MOV	AX, [BP+8]			;x1
-		MOV	BX, [BP+6]			;y1
-		MOV	CX, [BP+4]			;x2
-		MOV	DX, [BP+2]			;y2
-
-PREENCHE:
-		PUSH	AX
-		PUSH	BX
-		PUSH	AX
-		PUSH	DX
-		CALL line
-		INC AX
-		CMP	AX, CX
-		JL	PREENCHE
-
-		;retorna contexto e sai da funçao
-		POP 	DX
-		POP 	CX
-		POP 	BX
-		POP 	AX
-		POPF
-		POP 	BP
-		RET
-
 ;*******************************************************************
 
 segment data
 
-cor		db		branco_intenso
+%include "src\defs.asm"
 
-;	I R G B COR
-;	0 0 0 0 preto
-;	0 0 0 1 azul
-;	0 0 1 0 verde
-;	0 0 1 1 cyan
-;	0 1 0 0 vermelho
-;	0 1 0 1 magenta
-;	0 1 1 0 marrom
-;	0 1 1 1 branco
-;	1 0 0 0 cinza
-;	1 0 0 1 azul claro
-;	1 0 1 0 verde claro
-;	1 0 1 1 cyan claro
-;	1 1 0 0 rosa
-;	1 1 0 1 magenta claro
-;	1 1 1 0 amarelo
-;	1 1 1 1 branco intenso
-
-preto	equ	0
-azul  equ 1
-verde equ	2
-cyan	equ	3
-vermelho equ 4
-magenta	equ 5
-marrom equ 6
-branco equ 7
-cinza equ 8
-azul_claro equ 9
-verde_claro equ 10
-cyan_claro equ 11
-rosa equ 12
-magenta_claro equ 13
-amarelo	equ 14
-branco_intenso equ 15
+cor db branco_intenso
 
 modo_anterior db 0
 
