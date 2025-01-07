@@ -11,7 +11,20 @@ segment code
     MOV AX, stack
     MOV SS, AX
     MOV SP, stacktop
+		
+;salva o endereço do tratamento padrao da interrupçao 9h	
+	CLI
+	MOV AX, 0
+	MOV ES, AX
 
+	CLI
+	MOV		AX, [ES:INTr*4]
+	MOV 	[save_offset], AX
+	MOV		AX, [ES:INTr*4+2]
+	MOV		[save_segment], AX
+	MOV		[ES:INTr*4+2], CS
+	MOV		word[ES:INTr*4], INTERRUPCAO_TECLADO
+	STI
 ;Salvar modo corrente de video(vendo como esta o modo de video da maquina)
     MOV AH, 0Fh
     INT 10h
@@ -73,34 +86,42 @@ MEDIO:
 ;printa a dificuldade dificil
 DIFICIL:
 		CALL cursor
-    MOV AL, [BX+menu_dificil]
+    	MOV AL, [BX+menu_dificil]
 		CALL caracter
-    INC	BX ;proximo caracter
+    	INC	BX ;proximo caracter
 		INC	DL ;avanca a coluna
-    LOOP DIFICIL
+    	LOOP DIFICIL
 		MOV DL, 14 ;salva informaçoes para printar a seta de seleçao
 		MOV	BX, 0
 
 SELECAO:
-		MOV	byte[cor], branco_intenso
-		CALL cursor
-    MOV  AL, [BX+selecao]
-		CALL caracter
+		MOV		byte[cor], branco_intenso
+		CALL 	cursor
+    	MOV  	AL, [BX+selecao]
+		CALL 	caracter		
+    	MOV		word[tecla_primida], 0 
+		
+TESTE1:	MOV		AX, [verifica1]
+		CMP		AX, [verifica2]
+		JE TESTE1
+		INC     WORD [verifica2]
+		AND     WORD [verifica2],7
+		XOR		AX, AX
+		MOV		AL, [1+tecla]
+		MOV 	[tecla_primida], AL
 
-		MOV 	AH, 00h        				; Função 00h do INT 16h, para leitura do teclado
-    INT 	16h
-		CMP		AH, 4Dh						;seta para a direita foi apertada
+		CMP		byte[tecla_primida], 4Dh						;seta para a direita foi apertada
 		JE		TROCA_DIREITA
-		CMP		AH, 4Bh						; seta para a esquerda foi apertada
+		CMP		byte[tecla_primida], 4Bh						; seta para a esquerda foi apertada
 		JE		TROCA_ESQUERDA
-		CMP		AH, 1Ch						; enter foi apertado
+		CMP		byte[tecla_primida], 1Ch						; enter foi apertado
 		JE		JOGO
 		JMP 	SELECAO
 
 TROCA_DIREITA:
 		MOV		byte[cor], preto			;apaga seta		
 		CALL	cursor
-    MOV     AL, [BX+selecao]
+   	    MOV     AL, [BX+selecao]
 		CALL	caracter
 		CMP		DL, 53						; compara para saber se esta na ultima dificuldade selecionavel
 		JG		volta_dir
@@ -114,7 +135,7 @@ volta_dir:									; da a volta pela direita para a primeira dificuldade
 TROCA_ESQUERDA:
 		MOV	byte[cor], preto			;apaga seta		
 		CALL cursor
-    MOV AL, [BX+selecao]
+    	MOV AL, [BX+selecao]
 		CALL	caracter
 
 		CMP		DL, 20						; compara para saber se esta na primeira dificuldade selecionavel
@@ -161,21 +182,89 @@ JOGO:
 		MOV		AX, 600
 		PUSH	AX
 		MOV		AX, 439
-    PUSH  AX
-		CALL RETANGULO
+    	PUSH    AX
+		CALL 	RETANGULO
 
     ;desenha os blocos dos jogadores
-    CALL DESENHA_BLOCOS_P1_E_P2
+    	CALL 	DESENHA_BLOCOS_P1_E_P2
 
+TESTE2:	MOV		AX, [verifica1]
+		CMP		AX, [verifica2]
+		JE TESTE2
+		INC     WORD [verifica2]
+		AND     WORD [verifica2],7
+		;aqui serão feitas as comparaçoes para a movimentaçao, pausa e saida do jogo
+		MOV		AL, [1+tecla]
+		MOV		[tecla_primida], AL
+
+		CMP		byte[tecla_primida], 19h
+		JE		PAUSE
+		;verifica se a tecla de saida foi primida e sai caso sim
+		CMP 	byte[tecla_primida], 10h
+		JE 		FIM
+		JMP		TESTE2
 FIM:
 ;sai do modo de video
-		MOV AH, 08h
-		INT 21h
-	  MOV AH, 0   						; set video mode
-	  MOV AL, [modo_anterior]   		; modo anterior
-	  INT 10h
+		CLI								
+        XOR     AX, AX					
+        MOV     ES, AX					
+        MOV     AX, [save_segment]			
+        MOV     [ES:INTr*4+2], AX		
+        MOV     AX, [save_offset]
+        MOV     [ES:INTr*4], AX
+		STI
+	 	MOV AH, 0   						; set video mode
+	 	MOV AL, [modo_anterior]   		; modo anterior
+	  	INT 10h
 		MOV AX, 4c00h
 		INT 21h
+		
+PAUSE:
+		MOV		AX, [verifica1]
+		CMP		AX, [verifica2]
+		JE PAUSE
+		INC     WORD [verifica2]
+		AND     WORD [verifica2],7
+		MOV		AL, [1+tecla]
+		MOV		[tecla_primida], AL
+		CMP		byte[tecla_primida], 19h
+		JE		TESTE2
+		JMP		PAUSE
+
+INTERRUPCAO_TECLADO:
+		PUSHF
+		PUSH	AX	
+		PUSH	BX	
+		PUSH	CX	
+		PUSH	DX	
+		PUSH	DS
+		PUSH	ES	
+
+		IN 		AL, 0x60
+		INC     WORD [verifica1]
+		AND     WORD [verifica1], 7
+		;MOV		BX, [verifica1]
+		MOV		[1+tecla], AL
+
+		; Limpa a interrupção do teclado
+		IN      AL, kb_ctl				
+        OR      AL, 80h					
+        OUT     kb_ctl, AL				
+        AND     AL, 7Fh					
+        OUT     kb_ctl, AL	
+		
+		; notifica fim da interrupçao ao PIC			
+        MOV     AL, eoi					
+        OUT     pictrl, AL
+		
+		POP		ES
+		POP		DS
+		POP 	DX
+		POP 	CX
+		POP 	BX
+		POP 	AX
+		POPF
+		IRET
 
 ;*******************************************************************
 
@@ -198,6 +287,16 @@ menu_medio db 'Medio $'
 menu_dificil db	'Dificil $'
 menu_instruc db	'Aperte [ENTER] para selecionar $'
 selecao	db '> $'
+save_segment dw 1
+save_offset	dw 1
+INTr equ 9h
+tecla_primida db 0
+kb_ctl	equ 61h
+eoi		equ 20h
+pictrl  equ 20h	
+verifica1 dw 0
+verifica2 dw 0
+tecla resb  8
 ;*************************************************************************
 segment stack stack
     DW 		512

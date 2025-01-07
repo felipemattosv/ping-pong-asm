@@ -87,7 +87,7 @@ DESENHA_BLOCOS_P1_E_P2:
     CALL	RETANGULO
 
     ; Bloco 4
-    MOV byte[cor], azul_claro
+    MOV byte[cor], cyan_claro
     
     MOV 	AX, X1_Blocos_P1
     PUSH 	AX
@@ -100,7 +100,7 @@ DESENHA_BLOCOS_P1_E_P2:
     CALL	RETANGULO
 
     ; Bloco 5
-    MOV byte[cor], azul
+    MOV byte[cor], azul_claro
     
     MOV 	AX, X1_Blocos_P1
     PUSH 	AX
@@ -154,7 +154,7 @@ DESENHA_BLOCOS_P1_E_P2:
     CALL	RETANGULO
 
     ; Bloco 4
-    MOV byte[cor], azul_claro
+    MOV byte[cor], cyan_claro
 
     MOV 	AX, X1_Blocos_P2
     PUSH 	AX
@@ -167,7 +167,7 @@ DESENHA_BLOCOS_P1_E_P2:
     CALL	RETANGULO
 
     ; Bloco 5
-    MOV byte[cor], azul
+    MOV byte[cor], azul_claro
 
     MOV 	AX, X1_Blocos_P2
     PUSH 	AX
@@ -176,6 +176,32 @@ DESENHA_BLOCOS_P1_E_P2:
     MOV		AX, X2_Blocos_P2
     PUSH	AX
     MOV		AX, Y2_Bloco5
+    PUSH  AX
+    CALL	RETANGULO
+
+    ; player 1
+    MOV byte[cor], azul_claro
+
+    MOV 	AX, word[x1_p1]
+    PUSH 	AX
+    MOV 	AX, word[y1_p1]
+    PUSH	AX
+    MOV		AX, word[x2_p1]
+    PUSH	AX
+    MOV		AX, word[y2_p1]
+    PUSH  AX
+    CALL	RETANGULO
+
+    ; player 2
+    MOV byte[cor], magenta
+
+    MOV 	AX, word[x1_p2]
+    PUSH 	AX
+    MOV 	AX, word[y1_p2]
+    PUSH	AX
+    MOV		AX, word[x2_p2]
+    PUSH	AX
+    MOV		AX, word[y2_p2]
     PUSH  AX
     CALL	RETANGULO
 
