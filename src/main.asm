@@ -46,8 +46,7 @@ SELECAO:
 		MOV		byte[cor], branco_intenso
 		CALL 	cursor
     	MOV  	AL, [BX+selecao]
-		CALL 	caracter		
-    	MOV		word[tecla_primida], 0 
+		CALL 	caracter		 
 		
 		CALL LEITURA_TECLA
 
@@ -125,7 +124,9 @@ JOGO:
     	CALL 	DESENHA_BLOCOS_P1_E_P2
 
 MOVIMENTOS:
-		CALL	LEITURA_TECLA 
+		;CALL	LEITURA_TECLA 
+		MOV		AX, [verifica1]
+		MOV		[verifica2], AX
 		;verifica se foi pausado
 		CMP		byte[tecla_primida], 19h
 		JE		PAUSE
@@ -148,15 +149,18 @@ FIM:
 	  	INT 10h
 		MOV AX, 4c00h
 		INT 21h
-		
+ZERA:	
+	MOV byte[tecla_primida], 0h
+	JMP MOVIMENTOS
+
 PAUSE:
 		CALL LEITURA_TECLA
 		CMP		byte[tecla_primida], 19h
-		JE		MOVIMENTOS
+		JE		ZERA
 		JMP		PAUSE
 
 INTERRUPCAO_TECLADO:
-		PUSHF
+		PUSHF  
 		PUSH	AX	
 		PUSH	BX	
 		PUSH	CX	
@@ -169,7 +173,8 @@ INTERRUPCAO_TECLADO:
 		AND     WORD [verifica1], 7
 		;MOV		BX, [verifica1]
 		MOV		[1+tecla], AL
-
+		MOV		AL, [1+tecla]
+		MOV		[tecla_primida], AL
 		; Limpa a interrupção do teclado
 		IN      AL, kb_ctl				
         OR      AL, 80h					
@@ -261,20 +266,12 @@ LEITURA_TECLA:
 		PUSHF
 		PUSH AX
 		PUSH BX
-		PUSH CX
-		PUSH DX
-		
 ESPERA:	MOV		AX, [verifica1]	
 		CMP		AX, [verifica2]
 		JE ESPERA
 		INC     WORD [verifica2]
 		AND     WORD [verifica2],7
-		;aqui serão feitas as comparaçoes para a movimentaçao, pausa e saida do jogo
-		MOV		AL, [1+tecla]
-		MOV		[tecla_primida], AL
 
-		POP DX
-		POP CX
 		POP BX
 		POP AX
 		POPF
