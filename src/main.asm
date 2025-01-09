@@ -38,7 +38,8 @@ segment code
 ;Gera menu
 	MOV	byte [cor], branco_intenso
 	CALL MENU
-	MOV DL, 14 ;salva informaçoes para printar a seta de seleçao
+	;salva informaçoes para printar a seta de seleçao
+	MOV DL, 14
 	MOV DH, 15
 	MOV	BX, 0
 
@@ -124,15 +125,34 @@ JOGO:
     	CALL 	DESENHA_BLOCOS_P1_E_P2
 
 MOVIMENTOS:
-		;CALL	LEITURA_TECLA 
 		MOV		AX, [verifica1]
 		MOV		[verifica2], AX
+
 		;verifica se foi pausado
 		CMP		byte[tecla_primida], 19h
 		JE		PAUSE
+
 		;verifica se a tecla de saida foi primida e sai caso sim
 		CMP 	byte[tecla_primida], 10h
 		JE 		FIM
+
+		;move jogador 1 para baixo
+		CMP		byte[tecla_primida], 1Fh
+		JE	NEAR DESCE_P1
+
+		;move jogador 2 para baixo
+		CMP		byte[tecla_primida], 50h
+		JE	NEAR DESCE_P2
+
+		;move jogador 1 para cima
+		CMP		byte[tecla_primida], 11h
+		JE	NEAR SOBE_P1
+		
+		;move jogador 2 para cima
+		CMP		byte[tecla_primida], 48h
+		JE	NEAR SOBE_P2		
+
+		;nenhuma tecla primida, entao retorna ao inicio do loop	
 		JMP		MOVIMENTOS
 FIM:
 ;sai do modo de video
@@ -149,15 +169,184 @@ FIM:
 	  	INT 10h
 		MOV AX, 4c00h
 		INT 21h
-ZERA:	
+ZERA:
+	;zera a variavel que armazena a tecla	
 	MOV byte[tecla_primida], 0h
 	JMP MOVIMENTOS
 
-PAUSE:
-		CALL LEITURA_TECLA
+PAUSE:	
+		;escreve aviso de pause
+		MOV		byte[cor], branco_intenso
+		MOV 	DL, 35
+		MOV 	DH, 25
+		MOV		BX, 0
+		MOV 	CX, 7
+MSG_PAUSE:
+		CALL	cursor
+		MOV 	DI, DS
+    	MOV 	AL, [BX+msg_pause]  
+		CALL	caracter
+    	INC		BX							;proximo caracter 
+		INC		DL							;avanca a coluna
+    	LOOP 	MSG_PAUSE
+		
+		;aguarda a leitura da tecla 'p' para despausar
+		CALL 	LEITURA_TECLA
 		CMP		byte[tecla_primida], 19h
-		JE		ZERA
+		JE		APAGA
 		JMP		PAUSE
+APAGA:
+		;apaga aviso de pause
+		MOV		byte[cor], preto
+		MOV 	DL, 35
+		MOV 	DH, 25
+		MOV		BX, 0
+		MOV 	CX, 7
+MSG_DESPAUSE:
+		CALL	cursor
+		MOV 	DI, DS
+    	MOV 	AL, [BX+msg_pause]  
+		CALL	caracter
+    	INC		BX 
+		INC		DL							
+    	LOOP 	MSG_DESPAUSE
+		JMP ZERA
+
+DESCE_P1:
+		;verifica se atingiu o limite do mapa
+		CMP     word[y1_p1], 41
+		JE		ZERA
+		;apaga posiçao atual
+		MOV		byte[cor], preto
+		MOV		AX, [x1_p1]
+		PUSH	AX
+		MOV		AX, [y1_p1]
+		PUSH	AX
+		MOV		AX, [x2_p1]
+		PUSH	AX
+		MOV		AX, [y2_p1]
+		PUSH	AX
+		CALL RETANGULO
+		
+		;move
+		MOV		byte[cor], azul
+		SUB		word[y2_p1], 4	
+		SUB		word[y1_p1], 4
+
+		;printa em nova posiçao
+		MOV		AX, [x1_p1]
+		PUSH	AX
+		MOV		AX, [y1_p1]
+		PUSH	AX
+		MOV		AX, [x2_p1]
+		PUSH	AX
+		MOV		AX, [y2_p1]
+		PUSH	AX
+		CALL RETANGULO
+
+		JMP		ZERA
+
+DESCE_P2:
+		;verifica se atingiu o limite do mapa
+		CMP     word[y1_p2], 41
+		JE	NEAR ZERA
+		;apaga posiçao atual
+		MOV		byte[cor], preto
+		MOV		AX, [x1_p2]
+		PUSH	AX
+		MOV		AX, [y1_p2]
+		PUSH	AX
+		MOV		AX, [x2_p2]
+		PUSH	AX
+		MOV		AX, [y2_p2]
+		PUSH	AX
+		CALL RETANGULO
+		
+		;move
+		MOV		byte[cor], magenta
+		SUB		word[y2_p2], 4	
+		SUB		word[y1_p2], 4
+
+		;printa em nova posiçao
+		MOV		AX, [x1_p2]
+		PUSH	AX
+		MOV		AX, [y1_p2]
+		PUSH	AX
+		MOV		AX, [x2_p2]
+		PUSH	AX
+		MOV		AX, [y2_p2]
+		PUSH	AX
+		CALL RETANGULO
+
+		JMP	ZERA
+
+SOBE_P2:
+		;verifica se atingiu o limite do mapa
+		CMP     word[y2_p2], 439
+		JE	NEAR ZERA
+		;apaga posiçao atual
+		MOV		byte[cor], preto
+		MOV		AX, [x1_p2]
+		PUSH	AX
+		MOV		AX, [y1_p2]
+		PUSH	AX
+		MOV		AX, [x2_p2]
+		PUSH	AX
+		MOV		AX, [y2_p2]
+		PUSH	AX
+		CALL RETANGULO
+		
+		;move
+		MOV		byte[cor], magenta
+		ADD		word[y2_p2], 4	
+		ADD		word[y1_p2], 4
+
+		;printa em nova posiçao
+		MOV		AX, [x1_p2]
+		PUSH	AX
+		MOV		AX, [y1_p2]
+		PUSH	AX
+		MOV		AX, [x2_p2]
+		PUSH	AX
+		MOV		AX, [y2_p2]
+		PUSH	AX
+		CALL RETANGULO
+
+		JMP	NEAR ZERA
+
+SOBE_P1:
+		;verifica se atingiu o limite do mapa
+		CMP     word[y2_p1], 439
+		JE NEAR ZERA
+		;apaga posiçao atual
+		MOV		byte[cor], preto
+		MOV		AX, [x1_p1]
+		PUSH	AX
+		MOV		AX, [y1_p1]
+		PUSH	AX
+		MOV		AX, [x2_p1]
+		PUSH	AX
+		MOV		AX, [y2_p1]
+		PUSH	AX
+		CALL RETANGULO
+		
+		;move
+		MOV		byte[cor], azul
+		ADD		word[y2_p1], 4	
+		ADD		word[y1_p1], 4
+
+		;printa em nova posiçao
+		MOV		AX, [x1_p1]
+		PUSH	AX
+		MOV		AX, [y1_p1]
+		PUSH	AX
+		MOV		AX, [x2_p1]
+		PUSH	AX
+		MOV		AX, [y2_p1]
+		PUSH	AX
+		CALL RETANGULO
+
+		JMP	NEAR ZERA
 
 INTERRUPCAO_TECLADO:
 		PUSHF  
@@ -168,6 +357,7 @@ INTERRUPCAO_TECLADO:
 		PUSH	DS
 		PUSH	ES	
 
+		;faz a leitura do teclado e armazena o valor
 		IN 		AL, 0x60
 		INC     WORD [verifica1]
 		AND     WORD [verifica1], 7
@@ -175,6 +365,7 @@ INTERRUPCAO_TECLADO:
 		MOV		[1+tecla], AL
 		MOV		AL, [1+tecla]
 		MOV		[tecla_primida], AL
+
 		; Limpa a interrupção do teclado
 		IN      AL, kb_ctl				
         OR      AL, 80h					
@@ -204,7 +395,7 @@ MENU:
 		MOV CX, 30						;número de caracteres
 		MOV BX, 0
 		MOV DH, 25						;linha 0-29
-    MOV DL, 24						;coluna 0-79s
+    	MOV DL, 24						;coluna 0-79s
 
 INSTRUCAO:									;printa a instrucao de selecao
 		CALL cursor
@@ -298,6 +489,7 @@ menu_facil db 'Facil $'
 menu_medio db 'Medio $'
 menu_dificil db	'Dificil $'
 menu_instruc db	'Aperte [ENTER] para selecionar $'
+msg_pause db 'pausado $'
 selecao	db '> $'
 save_segment dw 1
 save_offset	dw 1
@@ -309,6 +501,8 @@ pictrl  equ 20h
 verifica1 dw 0
 verifica2 dw 0
 tecla resb  8
+save_registrador dw 0
+save_cor db 0
 ;*************************************************************************
 segment stack stack
     DW 		512
