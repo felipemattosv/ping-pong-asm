@@ -134,7 +134,7 @@ MOVIMENTOS:
 
 		;verifica se a tecla de saida foi primida e sai caso sim
 		CMP 	byte[tecla_primida], 10h
-		JE 		FIM
+		JE 	NEAR MENU_FECHA
 
 		;move jogador 1 para baixo
 		CMP		byte[tecla_primida], 1Fh
@@ -193,9 +193,9 @@ MSG_PAUSE:
 		;aguarda a leitura da tecla 'p' para despausar
 		CALL 	LEITURA_TECLA
 		CMP		byte[tecla_primida], 19h
-		JE		APAGA
+		JE		APAGA_PAUSE
 		JMP		PAUSE
-APAGA:
+APAGA_PAUSE:
 		;apaga aviso de pause
 		MOV		byte[cor], preto
 		MOV 	DL, 35
@@ -212,10 +212,50 @@ MSG_DESPAUSE:
     	LOOP 	MSG_DESPAUSE
 		JMP ZERA
 
+MENU_FECHA:
+		MOV		byte[cor], branco_intenso
+		MOV 	DL, 34			;coluna
+		MOV 	DH, 15			;linha
+		MOV		BX, 0
+		MOV 	CX, 18
+MSG_FECHA:
+		CALL	cursor
+		MOV 	DI, DS
+    	MOV 	AL, [BX+msg_fecha]  
+		CALL	caracter
+    	INC		BX							;proximo caracter 
+		INC		DL							;avanca a coluna
+    	LOOP 	MSG_FECHA
+		
+		;aguarda a leitura da tecla 'y' ou 'n'
+TESTE:
+		CALL 	LEITURA_TECLA
+		CMP		byte[tecla_primida], 15h
+		JE	NEAR FIM
+		CMP     byte[tecla_primida], 31h
+		JE	NEAR APAGA_FECHA
+		JMP	TESTE
+
+APAGA_FECHA:
+		MOV		byte[cor], preto
+		MOV 	DL, 34			;coluna
+		MOV 	DH, 15			;linha
+		MOV		BX, 0
+		MOV 	CX, 18
+APAGA_MSG_FECHA:
+		CALL	cursor
+		MOV 	DI, DS
+    	MOV 	AL, [BX+msg_fecha]  
+		CALL	caracter
+    	INC		BX							;proximo caracter 
+		INC		DL							;avanca a coluna
+    	LOOP 	APAGA_MSG_FECHA
+		JMP	NEAR ZERA 
+
 DESCE_P1:
 		;verifica se atingiu o limite do mapa
 		CMP     word[y1_p1], 41
-		JE		ZERA
+		JE	NEAR ZERA
 		;apaga posiçao atual
 		MOV		byte[cor], preto
 		MOV		AX, [x1_p1]
@@ -490,6 +530,7 @@ menu_medio db 'Medio $'
 menu_dificil db	'Dificil $'
 menu_instruc db	'Aperte [ENTER] para selecionar $'
 msg_pause db 'pausado $'
+msg_fecha db 'deseja sair? [y/n] $'
 selecao	db '> $'
 save_segment dw 1
 save_offset	dw 1
