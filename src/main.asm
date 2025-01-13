@@ -1,6 +1,6 @@
 ; Felipe Albuquerque e Jordano Furtado
 
-extern line, full_circle, circle, cursor, caracter, plot_xy, MENU, RETANGULO, DESENHA_BLOCOS_P1_E_P2, CONFIG_VIDEO
+extern line, full_circle, circle, cursor, caracter, plot_xy, MENU, RETANGULO, DESENHA_BLOCOS_P1_E_P2, CONFIG_VIDEO, LEITURA_TECLA
 global cor, tecla, tecla_primida, save_offset, save_segment, verifica1, verifica2, modo_anterior
 
 segment code
@@ -371,24 +371,6 @@ SOBE_P1:
 		CALL RETANGULO
 
 		JMP	NEAR ZERA
-
-LEITURA_TECLA:
-		PUSHF
-		PUSH AX
-		PUSH BX
-    
-ESPERA:	
-    MOV	AX, [verifica1]	
-		CMP AX, [verifica2]
-		JE ESPERA
-		INC WORD [verifica2]
-		AND WORD [verifica2], 7
-
-		POP BX
-		POP AX
-		POPF
-
-		RET
 
 INTERRUPCAO_TECLADO:
 		PUSHF  

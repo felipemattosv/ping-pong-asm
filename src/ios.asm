@@ -1,6 +1,6 @@
 ; Arquivo com as funções de entrada e saida (I/O)
 
-global CONFIG_VIDEO
+global CONFIG_VIDEO, LEITURA_TECLA
 extern tecla, tecla_primida, save_offset, save_segment, verifica1, verifica2, modo_anterior
 
 LEITURA_TECLA:
