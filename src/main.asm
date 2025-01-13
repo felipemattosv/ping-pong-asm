@@ -1,7 +1,7 @@
 ; Felipe Albuquerque e Jordano Furtado
 
 extern line, full_circle, circle, cursor, caracter, plot_xy, MENU, RETANGULO, DESENHA_BLOCOS_P1_E_P2, CONFIG_VIDEO, LEITURA_TECLA
-global cor, tecla, tecla_primida, save_offset, save_segment, verifica1, verifica2, modo_anterior
+global cor, verifica1, verifica2, modo_anterior
 
 segment code
 ..start:
@@ -372,9 +372,43 @@ SOBE_P1:
 
 		JMP	NEAR ZERA
 
+;Salva o endereço do tratamento padrao da interrupçao 9h	
+CONFIG_PIC:	
+  PUSHF  
+	PUSH	AX	
+	PUSH	BX	
+	PUSH	CX	
+	PUSH	DX	
+	PUSH	DS
+	PUSH	ES
+
+  
+  CLI
+	MOV AX, 0
+	MOV ES, AX
+
+	CLI
+	MOV		AX, [ES:INTr*4]
+	MOV 	[save_offset], AX
+	MOV		AX, [ES:INTr*4+2]
+	MOV		[save_segment], AX
+	MOV		[ES:INTr*4+2], CS
+	MOV		word[ES:INTr*4], INTERRUPCAO_TECLADO
+	STI
+
+  POP		ES
+	POP		DS
+	POP 	DX
+	POP 	CX
+	POP 	BX
+	POP 	AX
+	POPF
+
+  RET
+
 INTERRUPCAO_TECLADO:
-		PUSHF  
-		PUSH	AX	
+	  PUSHF  
+	  PUSH	AX	
 		PUSH	BX	
 		PUSH	CX	
 		PUSH	DX	
@@ -409,40 +443,6 @@ INTERRUPCAO_TECLADO:
 		POP 	AX
 		POPF
 		IRET
-
-;Salva o endereço do tratamento padrao da interrupçao 9h	
-CONFIG_PIC:	
-  PUSHF  
-	PUSH	AX	
-	PUSH	BX	
-	PUSH	CX	
-	PUSH	DX	
-	PUSH	DS
-	PUSH	ES
-
-  
-  CLI
-	MOV AX, 0
-	MOV ES, AX
-
-	CLI
-	MOV		AX, [ES:INTr*4]
-	MOV 	[save_offset], AX
-	MOV		AX, [ES:INTr*4+2]
-	MOV		[save_segment], AX
-	MOV		[ES:INTr*4+2], CS
-	MOV		word[ES:INTr*4], INTERRUPCAO_TECLADO
-	STI
-
-  POP		ES
-	POP		DS
-	POP 	DX
-	POP 	CX
-	POP 	BX
-	POP 	AX
-	POPF
-
-  RET
 
 ;*******************************************************************
 
