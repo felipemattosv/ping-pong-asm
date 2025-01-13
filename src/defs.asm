@@ -19,6 +19,18 @@ magenta_claro equ 13
 amarelo	equ 14
 branco_intenso equ 15
 ;---------------------------
+
+; Textos do menu
+menu_instruc db	'Aperte [ENTER] para selecionar $'
+menu_facil db 'Facil $'
+menu_medio db 'Medio $'
+menu_dificil db	'Dificil $'
+
+msg_pause db 'pausado $'
+msg_fecha db 'deseja sair? [y/n] $'
+selecao	db '> $'
+
+
 ; player 1 posiçao
 x1_p1 dw 50
 x2_p1 dw 70
@@ -56,3 +68,15 @@ Y2_Bloco4 equ 193
 Y1_Bloco5 equ 41
 Y2_Bloco5 equ 111
 ;----------------------------
+
+linha dw 0
+coluna dw 0
+deltax dw	0
+deltay dw 0	
+
+INTr equ 9h
+kb_ctl	equ 61h
+eoi		equ 20h
+pictrl  equ 20h	
+save_registrador dw 0
+save_cor db 0

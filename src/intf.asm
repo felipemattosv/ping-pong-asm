@@ -1,7 +1,75 @@
-; Arquivo com as funçÕes de interface
+; Arquivo com as funções de interface
 
-global RETANGULO, DESENHA_BLOCOS_P1_E_P2
-extern cor, line
+global MENU, RETANGULO, DESENHA_BLOCOS_P1_E_P2
+extern cor, line, cursor, caracter
+
+; Gera o menu inicial
+MENU:
+		PUSH DX
+		PUSH CX
+		PUSH BX
+		PUSH AX
+
+		MOV CX, 30						;número de caracteres
+		MOV BX, 0
+		MOV DH, 25						;linha 0-29
+    	MOV DL, 24						;coluna 0-79s
+
+INSTRUCAO:									;printa a instrucao de selecao
+		CALL cursor
+		MOV DI, DS
+    MOV AL, [BX+menu_instruc]  
+		
+		CALL caracter
+    INC	BX							;proximo caracter 
+		INC	DL							;avanca a coluna
+    LOOP INSTRUCAO
+
+		MOV CX, 5	
+    MOV DH, 15						;linha 0-29
+    MOV DL, 16						;coluna 0-79
+		MOV BX, 0
+		
+;escreve a dificuldade facil
+FACIL:
+		CALL cursor
+    MOV AL, [BX+menu_facil]
+		CALL caracter
+    INC BX ;proximo caracter
+		INC	DL ;avanca a coluna
+    LOOP FACIL
+		MOV	CX, 5
+		MOV DL, 36
+		MOV BX, 0
+
+;printa a dificuldade media
+MEDIO:
+		CALL cursor
+    MOV AL, [BX+menu_medio]
+		
+		CALL caracter
+    INC	BX	;proximo caracter
+		INC	DL	;avanca a coluna
+    LOOP MEDIO
+		MOV	CX, 7
+		MOV	DL, 56
+		MOV BX, 0
+
+;printa a dificuldade dificil
+DIFICIL:
+		CALL cursor
+    	MOV AL, [BX+menu_dificil]
+		CALL caracter
+    	INC	BX ;proximo caracter
+		INC	DL ;avanca a coluna
+    	LOOP DIFICIL
+		
+		POP AX
+		POP BX
+		POP CX
+		POP DX
+
+		RET
 
 ;desenha um retangulo preenchido. A cor ja deve estar definida.
 RETANGULO:
@@ -39,6 +107,7 @@ PREENCHE:
 		POP 	BP
 		RET   8
 
+;desenha os blocos dos jogadores
 DESENHA_BLOCOS_P1_E_P2:
     ; Salva contexto
     PUSH AX
