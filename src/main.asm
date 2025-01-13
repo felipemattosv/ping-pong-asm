@@ -1,6 +1,6 @@
 ; Felipe Albuquerque e Jordano Furtado
 
-extern line, full_circle, circle, cursor, caracter, plot_xy, MENU, RETANGULO, DESENHA_BLOCOS_P1_E_P2, CONFIG_VIDEO, LEITURA_TECLA
+extern line, full_circle, circle, cursor, caracter, plot_xy, MENU, RETANGULO, DESENHA_BLOCOS_P1_E_P2, DESENHA_LINHAS_DELIMIT, CONFIG_VIDEO, LEITURA_TECLA
 global cor, verifica1, verifica2, modo_anterior
 
 segment code
@@ -81,29 +81,9 @@ JOGO:
 		CALL	caracter
 		;apaga menu	
 		CALL	MENU
-		;cria linha delimitadora inferior 
-		MOV		byte[cor], branco_intenso					
-		XOR 	AX, AX
-		MOV 	AX, 40
-		PUSH 	AX
-		MOV 	AX, 40
-		PUSH 	AX
-		MOV 	AX, 600
-		PUSH 	AX
-		MOV 	AX, 40
-		PUSH 	AX
-		CALL 	line
-
-		;cria linha delimitadora superior
-		MOV 	AX, 40
-		PUSH 	AX
-		MOV 	AX, 440
-		PUSH 	AX
-		MOV 	AX, 600
-		PUSH 	AX
-		MOV 	AX, 440
-		PUSH 	AX
-		CALL 	line
+		
+    ;desenha linhas delimitadoras
+    CALL   DESENHA_LINHAS_DELIMIT
 
     ;desenha os blocos dos jogadores
     	CALL 	DESENHA_BLOCOS_P1_E_P2
@@ -139,7 +119,8 @@ MOVIMENTOS:
 		;nenhuma tecla primida, entao retorna ao inicio do loop	
 		JMP		MOVIMENTOS
 FIM:
-;sai do modo de video
+
+    ;restaura o tratamento padrao da interrupçao 9h
 		CLI								
         XOR     AX, AX					
         MOV     ES, AX					
@@ -148,11 +129,16 @@ FIM:
         MOV     AX, [save_offset]
         MOV     [ES:INTr*4], AX
 		STI
+
+    ;sai do modo de video
 	 	MOV AH, 0   						; set video mode
 	 	MOV AL, [modo_anterior]   		; modo anterior
-	  	INT 10h
-		MOV AX, 4c00h
+	  INT 10h
+
+    ;Retorna ao DOS
+    MOV AX, 4c00h
 		INT 21h
+
 ZERA:
 	;zera a variavel que armazena a tecla	
 	MOV byte[tecla_primida], 0h

@@ -1,6 +1,6 @@
 ; Arquivo com as funções de interface
 
-global MENU, RETANGULO, DESENHA_BLOCOS_P1_E_P2
+global MENU, RETANGULO, DESENHA_LINHAS_DELIMIT, DESENHA_BLOCOS_P1_E_P2
 extern cor, line, cursor, caracter
 
 ; Gera o menu inicial
@@ -106,6 +106,39 @@ PREENCHE:
 		POPF
 		POP 	BP
 		RET   8
+
+DESENHA_LINHAS_DELIMIT:
+  PUSHF
+  PUSH AX
+
+;cria linha delimitadora inferior 
+		MOV		byte[cor], branco_intenso					
+		XOR 	AX, AX
+		MOV 	AX, 40
+		PUSH 	AX
+		MOV 	AX, 40
+		PUSH 	AX
+		MOV 	AX, 600
+		PUSH 	AX
+		MOV 	AX, 40
+		PUSH 	AX
+		CALL 	line
+
+		;cria linha delimitadora superior
+		MOV 	AX, 40
+		PUSH 	AX
+		MOV 	AX, 440
+		PUSH 	AX
+		MOV 	AX, 600
+		PUSH 	AX
+		MOV 	AX, 440
+		PUSH 	AX
+		CALL 	line
+
+    POP AX
+    POPF
+
+    RET
 
 ;desenha os blocos dos jogadores
 DESENHA_BLOCOS_P1_E_P2:
