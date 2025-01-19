@@ -27,6 +27,7 @@ segment code
 	MOV DH, 15
 	MOV	BX, 0
 
+;Seleciona a dificuldade
 SELECAO:
 		MOV		byte[cor], branco_intenso
 		CALL 	cursor
@@ -35,11 +36,11 @@ SELECAO:
 		
 		CALL LEITURA_TECLA
 
-		CMP		byte[tecla_primida], 4Dh						;seta para a direita foi apertada
+		CMP		byte[tecla_primida], TECLA_SETA_DIREITA
 		JE		TROCA_DIREITA
-		CMP		byte[tecla_primida], 4Bh						; seta para a esquerda foi apertada
+		CMP		byte[tecla_primida], TECLA_SETA_ESQUERDA
 		JE		TROCA_ESQUERDA
-		CMP		byte[tecla_primida], 1Ch						; enter foi apertado
+		CMP		byte[tecla_primida], TECLA_ENTER
 		JE		JOGO
 		JMP 	SELECAO
 
@@ -93,27 +94,27 @@ MOVIMENTOS:
 		MOV		[verifica2], AX
 
 		;verifica se foi pausado
-		CMP		byte[tecla_primida], 19h
+		CMP		byte[tecla_primida], TECLA_P
 		JE		PAUSE
 
 		;verifica se a tecla de saida foi primida e sai caso sim
-		CMP 	byte[tecla_primida], 10h
+		CMP 	byte[tecla_primida], TECLA_Q
 		JE 	NEAR MENU_FECHA
 
 		;move jogador 1 para baixo
-		CMP		byte[tecla_primida], 1Fh
+		CMP		byte[tecla_primida], TECLA_S
 		JE	NEAR DESCE_P1
 
 		;move jogador 2 para baixo
-		CMP		byte[tecla_primida], 50h
+		CMP		byte[tecla_primida], TECLA_SETA_BAIXO
 		JE	NEAR DESCE_P2
 
 		;move jogador 1 para cima
-		CMP		byte[tecla_primida], 11h
+		CMP		byte[tecla_primida], TECLA_W
 		JE	NEAR SOBE_P1
 		
 		;move jogador 2 para cima
-		CMP		byte[tecla_primida], 48h
+		CMP		byte[tecla_primida], TECLA_SETA_CIMA
 		JE	NEAR SOBE_P2		
 
 		;nenhuma tecla primida, entao retorna ao inicio do loop	
@@ -162,7 +163,7 @@ MSG_PAUSE:
 		
 		;aguarda a leitura da tecla 'p' para despausar
 		CALL 	LEITURA_TECLA
-		CMP		byte[tecla_primida], 19h
+		CMP		byte[tecla_primida], TECLA_P
 		JE		APAGA_PAUSE
 		JMP		PAUSE
 APAGA_PAUSE:
@@ -200,9 +201,9 @@ MSG_FECHA:
 		;aguarda a leitura da tecla 'y' ou 'n'
 TESTE:
 		CALL 	LEITURA_TECLA
-		CMP		byte[tecla_primida], 15h
+		CMP		byte[tecla_primida], TECLA_Y
 		JE	NEAR FIM
-		CMP     byte[tecla_primida], 31h
+		CMP     byte[tecla_primida], TECLA_N
 		JE	NEAR APAGA_FECHA
 		JMP	TESTE
 

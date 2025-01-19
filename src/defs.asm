@@ -30,6 +30,19 @@ msg_pause db 'pausado $'
 msg_fecha db 'deseja sair? [y/n] $'
 selecao	db '> $'
 
+; Teclas
+TECLA_SETA_DIREITA equ 4Dh
+TECLA_SETA_ESQUERDA equ 4Bh
+TECLA_ENTER equ 1Ch
+TECLA_P equ 19h
+TECLA_Q equ 10h
+TECLA_Y equ 15h
+TECLA_N equ 31h
+TECLA_S equ 1Fh
+TECLA_W equ 11h
+TECLA_SETA_BAIXO equ 50h
+TECLA_SETA_CIMA equ 48h
+
 
 ; player 1 posiçao
 x1_p1 dw 50
