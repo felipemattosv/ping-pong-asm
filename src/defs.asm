@@ -30,9 +30,9 @@ msg_pause db 'pausado $'
 msg_fecha db 'deseja sair? [y/n] $'
 selecao	db '> $'
 
-; Teclas
-TECLA_SETA_DIREITA equ 4Dh
-TECLA_SETA_ESQUERDA equ 4Bh
+; Scancode Teclas
+TECLA_DIREITA equ 4Dh
+TECLA_ESQUERDA equ 4Bh
 TECLA_ENTER equ 1Ch
 TECLA_P equ 19h
 TECLA_Q equ 10h
@@ -40,8 +40,21 @@ TECLA_Y equ 15h
 TECLA_N equ 31h
 TECLA_S equ 1Fh
 TECLA_W equ 11h
-TECLA_SETA_BAIXO equ 50h
-TECLA_SETA_CIMA equ 48h
+TECLA_BAIXO equ 50h
+TECLA_CIMA equ 48h
+
+; Mapeamento de teclas
+MAP_DIREITA equ 0
+MAP_ESQUERDA equ 1
+MAP_ENTER equ 2
+MAP_P equ 3
+MAP_Q equ 4
+MAP_S equ 5
+MAP_BAIXO equ 6
+MAP_W equ 7
+MAP_CIMA equ 8
+MAP_Y equ 9
+MAP_N equ 10
 
 
 ; player 1 posiçao

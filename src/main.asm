@@ -1,6 +1,6 @@
 ; Felipe Albuquerque e Jordano Furtado
 
-extern line, full_circle, circle, cursor, caracter, plot_xy, MENU, RETANGULO, DESENHA_BLOCOS_P1_E_P2, DESENHA_LINHAS_DELIMIT, CONFIG_VIDEO, LEITURA_TECLA
+extern line, full_circle, circle, cursor, caracter, plot_xy, MENU, RETANGULO, DESENHA_BLOCOS_P1_E_P2, DESENHA_LINHAS_DELIMIT, CONFIG_VIDEO
 global cor, verifica1, verifica2, modo_anterior
 
 segment code
@@ -17,6 +17,15 @@ segment code
 
 ;Salva o modo de video atual e muda para grafico 640x480 16 cores
     CALL CONFIG_VIDEO
+
+; Inicializa o key_state_buffer com zeros
+    MOV CX, 11              ; Número de posições a inicializar
+    MOV DI, 0               ; Inicializa o índice no buffer
+
+init_loop:
+    MOV BYTE [key_state_buffer + DI], 0 ; Define a posição atual do buffer como 0
+    INC DI                              ; Incrementa o índice (DI)
+    LOOP init_loop  
 	
 ;Gera menu
 	  MOV	byte [cor], branco_intenso
@@ -33,16 +42,15 @@ SELECAO:
 		CALL 	cursor
     	MOV  	AL, [BX+selecao]
 		CALL 	caracter		 
-		
-		CALL LEITURA_TECLA
 
-		CMP		byte[tecla_primida], TECLA_SETA_DIREITA
+		CMP		byte[key_state_buffer + MAP_DIREITA], 1
 		JE		TROCA_DIREITA
-		CMP		byte[tecla_primida], TECLA_SETA_ESQUERDA
+		CMP		byte[key_state_buffer + MAP_ESQUERDA], 1
 		JE		TROCA_ESQUERDA
-		CMP		byte[tecla_primida], TECLA_ENTER
+		CMP		byte[key_state_buffer + MAP_ENTER], 1
 		JE		JOGO
-		JMP 	SELECAO
+		
+    JMP 	SELECAO
 
 TROCA_DIREITA:
 		MOV		byte[cor], preto			;apaga seta		
@@ -52,11 +60,15 @@ TROCA_DIREITA:
 		CMP		DL, 53						; compara para saber se esta na ultima dificuldade selecionavel
 		JG		volta_dir
 		ADD		DL, 20						; pula pra proxima dificuldade
+    ; dps passar o tamanho do loop externo como parametro (4) 
+    CALL DELAY
 		JMP		SELECAO
 
 volta_dir:									; da a volta pela direita para a primeira dificuldade
 		MOV		DL, 14
-		JMP		SELECAO
+		; dps passar o tamanho do loop externo como parametro (4) 
+    CALL DELAY
+    JMP		SELECAO
 
 TROCA_ESQUERDA:
 		MOV	byte[cor], preto			;apaga seta		
@@ -67,11 +79,15 @@ TROCA_ESQUERDA:
 		CMP		DL, 20						; compara para saber se esta na primeira dificuldade selecionavel
 		JL		volta_esq
 		SUB		DL, 20						; pula pra dificuldade anterior
+    ; dps passar o tamanho do loop externo como parametro (4) 
+    CALL DELAY
 		JMP		SELECAO
 
 volta_esq:	
 		MOV		DL, 54						; da a volta pela direita para a ultima dificuldade
-		JMP		SELECAO
+		; dps passar o tamanho do loop externo como parametro (4) 
+    CALL DELAY
+    JMP		SELECAO
 
 ;inicia o jogo, a dificuldade depende do valor de DL
 JOGO:	
@@ -94,28 +110,28 @@ MOVIMENTOS:
 		MOV		[verifica2], AX
 
 		;verifica se foi pausado
-		CMP		byte[tecla_primida], TECLA_P
+		CMP		byte[key_state_buffer + MAP_P], 1
 		JE		PAUSE
 
 		;verifica se a tecla de saida foi primida e sai caso sim
-		CMP 	byte[tecla_primida], TECLA_Q
+		CMP 	byte[key_state_buffer + MAP_Q], 1
 		JE 	NEAR MENU_FECHA
 
 		;move jogador 1 para baixo
-		CMP		byte[tecla_primida], TECLA_S
+		CMP		byte[key_state_buffer + MAP_S], 1
 		JE	NEAR DESCE_P1
 
 		;move jogador 2 para baixo
-		CMP		byte[tecla_primida], TECLA_SETA_BAIXO
+		CMP		byte[key_state_buffer + MAP_BAIXO], 1
 		JE	NEAR DESCE_P2
 
 		;move jogador 1 para cima
-		CMP		byte[tecla_primida], TECLA_W
+		CMP		byte[key_state_buffer + MAP_W], 1
 		JE	NEAR SOBE_P1
 		
 		;move jogador 2 para cima
-		CMP		byte[tecla_primida], TECLA_SETA_CIMA
-		JE	NEAR SOBE_P2		
+		CMP		byte[key_state_buffer + MAP_CIMA], 1
+		JE	NEAR SOBE_P2	
 
 		;nenhuma tecla primida, entao retorna ao inicio do loop	
 		JMP		MOVIMENTOS
@@ -141,8 +157,6 @@ FIM:
 		INT 21h
 
 ZERA:
-	;zera a variavel que armazena a tecla	
-	MOV byte[tecla_primida], 0h
 	JMP MOVIMENTOS
 
 PAUSE:	
@@ -160,14 +174,21 @@ MSG_PAUSE:
     	INC		BX							;proximo caracter 
 		INC		DL							;avanca a coluna
     	LOOP 	MSG_PAUSE
-		
-		;aguarda a leitura da tecla 'p' para despausar
-		CALL 	LEITURA_TECLA
-		CMP		byte[tecla_primida], TECLA_P
-		JE		APAGA_PAUSE
-		JMP		PAUSE
+
+    ; dps passar o tamanho do loop externo como parametro (6)
+    CALL DELAY
+    CALL DELAY
+    paused:
+      ;aguarda a leitura da tecla 'p' para despausar
+      CMP		byte[key_state_buffer + MAP_P], 1
+      JE		APAGA_PAUSE
+		JMP		paused
+
 APAGA_PAUSE:
-		;apaga aviso de pause
+    ; dps passar o tamanho do loop externo como parametro (6) 
+    CALL DELAY
+		CALL DELAY
+    ;apaga aviso de pause
 		MOV		byte[cor], preto
 		MOV 	DL, 35
 		MOV 	DH, 25
@@ -198,12 +219,10 @@ MSG_FECHA:
 		INC		DL							;avanca a coluna
     	LOOP 	MSG_FECHA
 		
-		;aguarda a leitura da tecla 'y' ou 'n'
 TESTE:
-		CALL 	LEITURA_TECLA
-		CMP		byte[tecla_primida], TECLA_Y
+		CMP		byte[key_state_buffer + MAP_Y], 1
 		JE	NEAR FIM
-		CMP     byte[tecla_primida], TECLA_N
+		CMP     byte[key_state_buffer + MAP_N], 1
 		JE	NEAR APAGA_FECHA
 		JMP	TESTE
 
@@ -255,7 +274,7 @@ DESCE_P1:
 		PUSH	AX
 		CALL RETANGULO
 
-		JMP		ZERA
+		JMP ZERA
 
 DESCE_P2:
 		;verifica se atingiu o limite do mapa
@@ -394,42 +413,186 @@ CONFIG_PIC:
   RET
 
 INTERRUPCAO_TECLADO:
-	  PUSHF  
-	  PUSH	AX	
-		PUSH	BX	
-		PUSH	CX	
-		PUSH	DX	
-		PUSH	DS
-		PUSH	ES	
+    ; Salva o contexto
+    PUSHF  
+    PUSH    AX	
+    PUSH    BX	
+    PUSH    CX	
+    PUSH    DX	
+    PUSH    DS
+    PUSH    ES	
 
-		;faz a leitura do teclado e armazena o valor
-		IN 		AL, 0x60
-		INC     WORD [verifica1]
-		AND     WORD [verifica1], 7
-		;MOV		BX, [verifica1]
-		MOV		[1+tecla], AL
-		MOV		AL, [1+tecla]
-		MOV		[tecla_primida], AL
+    ; Faz a leitura do teclado e armazena o scan code em AL
+    IN      AL, 0x60
 
-		; Limpa a interrupção do teclado
-		IN      AL, kb_ctl				
+    ; Verifica se é um scan code de tecla pressionada (bit mais significativo = 0)
+    TEST    AL, 80h
+    JNE NEAR TECLA_LIBERADA
+
+TECLA_PRESSIONADA:
+    ; Identifica qual tecla foi pressionada e atualiza o estado para 1
+    CMP     AL, TECLA_DIREITA
+    JE      SET_DIREITA
+    CMP     AL, TECLA_ESQUERDA
+    JE      SET_ESQUERDA
+    CMP     AL, TECLA_ENTER
+    JE      SET_ENTER
+    CMP     AL, TECLA_P
+    JE      SET_P
+    CMP     AL, TECLA_Q
+    JE      SET_Q
+    CMP     AL, TECLA_S
+    JE      SET_S
+    CMP     AL, TECLA_BAIXO
+    JE      SET_BAIXO
+    CMP     AL, TECLA_W
+    JE      SET_W
+    CMP     AL, TECLA_CIMA
+    JE      SET_CIMA
+    CMP     AL, TECLA_Y
+    JE      SET_Y
+    CMP     AL, TECLA_N
+    JE      SET_N
+    JMP     FIM_INT
+
+SET_DIREITA:
+    MOV     BYTE [key_state_buffer + MAP_DIREITA], 1
+    JMP     FIM_INT
+SET_ESQUERDA:
+    MOV     BYTE [key_state_buffer + MAP_ESQUERDA], 1
+    JMP     FIM_INT
+SET_ENTER:
+    MOV     BYTE [key_state_buffer + MAP_ENTER], 1
+    JMP     FIM_INT
+SET_P:
+    MOV     BYTE [key_state_buffer + MAP_P], 1
+    JMP     FIM_INT
+SET_Q:
+    MOV     BYTE [key_state_buffer + MAP_Q], 1
+    JMP     FIM_INT
+SET_S:
+    MOV     BYTE [key_state_buffer + MAP_S], 1
+    JMP     FIM_INT
+SET_BAIXO:
+    MOV     BYTE [key_state_buffer + MAP_BAIXO], 1
+    JMP     FIM_INT
+SET_W:
+    MOV     BYTE [key_state_buffer + MAP_W], 1
+    JMP     FIM_INT
+SET_CIMA:
+    MOV     BYTE [key_state_buffer + MAP_CIMA], 1
+    JMP     FIM_INT
+SET_Y:
+    MOV     BYTE [key_state_buffer + MAP_Y], 1
+    JMP     FIM_INT
+SET_N:
+    MOV     BYTE [key_state_buffer + MAP_N], 1
+    JMP     FIM_INT
+
+TECLA_LIBERADA:
+    ; Remove o bit mais significativo para obter o scan code original
+    AND     AL, 7Fh
+
+    ; Identifica qual tecla foi liberada e atualiza o estado para 0
+    CMP     AL, TECLA_DIREITA
+    JE      RESET_DIREITA
+    CMP     AL, TECLA_ESQUERDA
+    JE      RESET_ESQUERDA
+    CMP     AL, TECLA_ENTER
+    JE      RESET_ENTER
+    CMP     AL, TECLA_P
+    JE      RESET_P
+    CMP     AL, TECLA_Q
+    JE      RESET_Q
+    CMP     AL, TECLA_S
+    JE      RESET_S
+    CMP     AL, TECLA_BAIXO
+    JE      RESET_BAIXO
+    CMP     AL, TECLA_W
+    JE      RESET_W
+    CMP     AL, TECLA_CIMA
+    JE      RESET_CIMA
+    CMP     AL, TECLA_Y
+    JE      RESET_Y
+    CMP     AL, TECLA_N
+    JE      RESET_N
+    JMP     FIM_INT
+
+RESET_DIREITA:
+    MOV     BYTE [key_state_buffer + MAP_DIREITA], 0
+    JMP     FIM_INT
+RESET_ESQUERDA:
+    MOV     BYTE [key_state_buffer + MAP_ESQUERDA], 0
+    JMP     FIM_INT
+RESET_ENTER:
+    MOV     BYTE [key_state_buffer + MAP_ENTER], 0
+    JMP     FIM_INT
+RESET_P:
+    MOV     BYTE [key_state_buffer + MAP_P], 0
+    JMP     FIM_INT
+RESET_Q:
+    MOV     BYTE [key_state_buffer + MAP_Q], 0
+    JMP     FIM_INT
+RESET_S:
+    MOV     BYTE [key_state_buffer + MAP_S], 0
+    JMP     FIM_INT
+RESET_BAIXO:
+    MOV     BYTE [key_state_buffer + MAP_BAIXO], 0
+    JMP     FIM_INT
+RESET_W:
+    MOV     BYTE [key_state_buffer + MAP_W], 0
+    JMP     FIM_INT
+RESET_CIMA:
+    MOV     BYTE [key_state_buffer + MAP_CIMA], 0
+    JMP     FIM_INT
+RESET_Y:
+    MOV     BYTE [key_state_buffer + MAP_Y], 0
+    JMP     FIM_INT
+RESET_N:
+    MOV     BYTE [key_state_buffer + MAP_N], 0
+    JMP     FIM_INT
+
+FIM_INT:
+    ; Limpa a interrupção do teclado
+    IN      AL, kb_ctl				
     OR      AL, 80h					
-    OUT     kb_ctl, AL				
+    OUT     kb_ctl, AL
     AND     AL, 7Fh					
     OUT     kb_ctl, AL	
-		
-		; notifica fim da interrupçao ao PIC			
+
+    ; Notifica fim da interrupção ao PIC			
     MOV     AL, eoi					
     OUT     pictrl, AL
-		
-		POP		ES
-		POP		DS
-		POP 	DX
-		POP 	CX
-		POP 	BX
-		POP 	AX
-		POPF
-		IRET
+
+    ; Restaura o contexto
+    POP     ES
+    POP     DS
+    POP     DX
+    POP     CX
+    POP     BX
+    POP     AX
+    POPF
+    IRET
+
+DELAY:
+    PUSHF
+    PUSH BX
+    PUSH CX
+
+    MOV BX, 4
+
+    outer_loop:
+      MOV CX, 65535
+      inner_loop:
+        DEC cx
+        JNZ inner_loop
+    DEC BX
+    JNZ outer_loop
+    
+    POP CX
+    POP BX
+    POPF
+    RET
 
 ;*******************************************************************
 
@@ -439,8 +602,7 @@ cor db branco_intenso
 
 modo_anterior db 0
 
-tecla resb  8
-tecla_primida db 0
+key_state_buffer resb 11
 
 verifica1 dw 0
 verifica2 dw 0
