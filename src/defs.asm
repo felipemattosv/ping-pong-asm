@@ -56,19 +56,6 @@ MAP_CIMA equ 8
 MAP_Y equ 9
 MAP_N equ 10
 
-
-; player 1 posiçao
-x1_p1 dw 50
-x2_p1 dw 70
-y1_p1 dw 205
-y2_p1 dw 275
- 
-;player 2 posiçao
-x1_p2 dw 570
-x2_p2 dw 590
-y1_p2 dw 205
-y2_p2 dw 275
-
 ;----------------------------
 ; Player1 (esquerda)
 X1_Blocos_P1 equ 20

@@ -1,7 +1,7 @@
 ; Arquivo com as funções de interface
 
-global MENU, RETANGULO, DESENHA_LINHAS_DELIMIT, DESENHA_BLOCOS_P1_E_P2
-extern cor, line, cursor, caracter
+global MENU, RETANGULO, DESENHA_LINHAS_DELIMIT, DESENHA_BLOCOS_P1_E_P2, SOBE_P1, SOBE_P2, DESCE_P1, DESCE_P2
+extern cor, line, cursor, caracter, x1_p1, x2_p1, y1_p1, y2_p1, x1_p2, x2_p2, y1_p2, y2_p2
 
 ; Gera o menu inicial
 MENU:
@@ -312,5 +312,180 @@ DESENHA_BLOCOS_P1_E_P2:
     MOV byte[cor], AL
     POP AX
     RET
+
+SOBE_P1:
+    ; Salva contexto
+    PUSHF
+    PUSH AX
+    
+    ;verifica se atingiu o limite do mapa
+		CMP     word[y2_p1], 439
+		JE ignorar_sobe_p1
+
+		;apaga posiçao atual
+		MOV		byte[cor], preto
+		MOV		AX, [x1_p1]
+		PUSH	AX
+		MOV		AX, [y1_p1]
+		PUSH	AX
+		MOV		AX, [x2_p1]
+		PUSH	AX
+		MOV		AX, [y2_p1]
+		PUSH	AX
+		CALL RETANGULO
+		
+		;move
+		MOV		byte[cor], azul
+		ADD		word[y2_p1], 4	
+		ADD		word[y1_p1], 4
+
+		;printa em nova posiçao
+		MOV		AX, [x1_p1]
+		PUSH	AX
+		MOV		AX, [y1_p1]
+		PUSH	AX
+		MOV		AX, [x2_p1]
+		PUSH	AX
+		MOV		AX, [y2_p1]
+		PUSH	AX
+		CALL RETANGULO
+
+    ignorar_sobe_p1:
+    ; Restaura contexto
+    POP AX
+    POPF
+
+    RET
+
+
+SOBE_P2:
+		; Salva contexto
+    PUSHF
+    PUSH AX
+    
+    ;verifica se atingiu o limite do mapa
+		CMP     word[y2_p2], 439
+		JE	ignorar_sobe_p2
+		;apaga posiçao atual
+		MOV		byte[cor], preto
+		MOV		AX, [x1_p2]
+		PUSH	AX
+		MOV		AX, [y1_p2]
+		PUSH	AX
+		MOV		AX, [x2_p2]
+		PUSH	AX
+		MOV		AX, [y2_p2]
+		PUSH	AX
+		CALL RETANGULO
+		
+		;move
+		MOV		byte[cor], magenta
+		ADD		word[y2_p2], 4	
+		ADD		word[y1_p2], 4
+
+		;printa em nova posiçao
+		MOV		AX, [x1_p2]
+		PUSH	AX
+		MOV		AX, [y1_p2]
+		PUSH	AX
+		MOV		AX, [x2_p2]
+		PUSH	AX
+		MOV		AX, [y2_p2]
+		PUSH	AX
+		CALL RETANGULO
+
+    ignorar_sobe_p2:
+    ; Restaura contexto
+    POP AX
+    POPF
+
+		RET
+
+DESCE_P1:
+    ; Salva contexto
+    PUSHF
+    PUSH AX
+
+		;verifica se atingiu o limite do mapa
+		CMP     word[y1_p1], 41
+		JE	ignorar_desce_p1
+		;apaga posiçao atual
+		MOV		byte[cor], preto
+		MOV		AX, [x1_p1]
+		PUSH	AX
+		MOV		AX, [y1_p1]
+		PUSH	AX
+		MOV		AX, [x2_p1]
+		PUSH	AX
+		MOV		AX, [y2_p1]
+		PUSH	AX
+		CALL RETANGULO
+		
+		;move
+		MOV		byte[cor], azul
+		SUB		word[y2_p1], 4	
+		SUB		word[y1_p1], 4
+
+		;printa em nova posiçao
+		MOV		AX, [x1_p1]
+		PUSH	AX
+		MOV		AX, [y1_p1]
+		PUSH	AX
+		MOV		AX, [x2_p1]
+		PUSH	AX
+		MOV		AX, [y2_p1]
+		PUSH	AX
+		CALL RETANGULO
+
+    ignorar_desce_p1:
+    ; Restaura contexto
+    POP AX
+    POPF
+
+		RET
+
+DESCE_P2:
+		; Salva contexto
+    PUSHF
+    PUSH AX
+    
+    ;verifica se atingiu o limite do mapa
+		CMP     word[y1_p2], 41
+		JE	ignorar_desce_p2
+		;apaga posiçao atual
+		MOV		byte[cor], preto
+		MOV		AX, [x1_p2]
+		PUSH	AX
+		MOV		AX, [y1_p2]
+		PUSH	AX
+		MOV		AX, [x2_p2]
+		PUSH	AX
+		MOV		AX, [y2_p2]
+		PUSH	AX
+		CALL RETANGULO
+		
+		;move
+		MOV		byte[cor], magenta
+		SUB		word[y2_p2], 4	
+		SUB		word[y1_p2], 4
+
+		;printa em nova posiçao
+		MOV		AX, [x1_p2]
+		PUSH	AX
+		MOV		AX, [y1_p2]
+		PUSH	AX
+		MOV		AX, [x2_p2]
+		PUSH	AX
+		MOV		AX, [y2_p2]
+		PUSH	AX
+		CALL RETANGULO
+
+    ignorar_desce_p2:
+    ; Restaura contexto
+    POP AX
+    POPF
+
+		RET
+
 
 %include "src\defs.asm"

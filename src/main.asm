@@ -1,7 +1,7 @@
 ; Felipe Albuquerque e Jordano Furtado
 
-extern line, full_circle, circle, cursor, caracter, plot_xy, MENU, RETANGULO, DESENHA_BLOCOS_P1_E_P2, DESENHA_LINHAS_DELIMIT, CONFIG_VIDEO
-global cor, verifica1, verifica2, modo_anterior
+extern line, full_circle, circle, cursor, caracter, plot_xy, MENU, RETANGULO, DESENHA_BLOCOS_P1_E_P2, DESENHA_LINHAS_DELIMIT, CONFIG_VIDEO, SOBE_P1, SOBE_P2, DESCE_P1, DESCE_P2
+global cor, verifica1, verifica2, modo_anterior, x1_p1, x2_p1, y1_p1, y2_p1, x1_p2, x2_p2, y1_p2, y2_p2
 
 segment code
 ..start:
@@ -106,35 +106,114 @@ JOGO:
     	CALL 	DESENHA_BLOCOS_P1_E_P2
 
 MOVIMENTOS:
-		MOV		AX, [verifica1]
-		MOV		[verifica2], AX
-
 		;verifica se foi pausado
 		CMP		byte[key_state_buffer + MAP_P], 1
-		JE		PAUSE
+		JE		NEAR PAUSE
 
 		;verifica se a tecla de saida foi primida e sai caso sim
 		CMP 	byte[key_state_buffer + MAP_Q], 1
 		JE 	NEAR MENU_FECHA
 
-		;move jogador 1 para baixo
-		CMP		byte[key_state_buffer + MAP_S], 1
-		JE	NEAR DESCE_P1
+    test_only_player1:
+    XOR AX, AX
+    ;Verifica se o player2 se movimenta:
+    MOV AL, byte[key_state_buffer + MAP_CIMA]
+    OR AL, [key_state_buffer + MAP_BAIXO]
+    CMP AL, 0
+    JNE test_only_player2
 
-		;move jogador 2 para baixo
-		CMP		byte[key_state_buffer + MAP_BAIXO], 1
-		JE	NEAR DESCE_P2
+    ;Apenas player1 se movimenta:
+    CMP byte[key_state_buffer + MAP_W], 1
+    JE HANDLE_SOBE_P1
+    CMP byte[key_state_buffer + MAP_S], 1
+    JE HANDLE_DESCE_P1
+    JMP MOVIMENTOS
 
-		;move jogador 1 para cima
-		CMP		byte[key_state_buffer + MAP_W], 1
-		JE	NEAR SOBE_P1
-		
-		;move jogador 2 para cima
-		CMP		byte[key_state_buffer + MAP_CIMA], 1
-		JE	NEAR SOBE_P2	
+    test_only_player2:
+    XOR AX, AX
+    ;Verifica se o player1 se movimenta:
+    MOV AL, byte[key_state_buffer + MAP_W]
+    OR AL, [key_state_buffer + MAP_S]
+    CMP AL, 0
+    JNE test_both_move
+
+    ;Apenas player2 se movimenta:
+    CMP byte[key_state_buffer + MAP_CIMA], 1
+    JE HANDLE_SOBE_P2
+    CMP byte[key_state_buffer + MAP_BAIXO], 1
+    JE HANDLE_DESCE_P2
+    JMP MOVIMENTOS
+
+    test_both_move:
+    ;Ambos se movimentam:
+    ; Player1 sobe e Player2 sobe
+    XOR AX, AX
+    MOV AL, byte[key_state_buffer + MAP_W]
+    AND AL, [key_state_buffer + MAP_CIMA]
+    CMP AL, 1
+    JE HANDLE_SOBE_P1_SOBE_P2
+
+    ; Player1 desce e Player2 desce
+    XOR AX, AX
+    MOV AL, byte[key_state_buffer + MAP_S]
+    AND AL, [key_state_buffer + MAP_BAIXO]
+    CMP AL, 1
+    JE HANDLE_DESCE_P1_DESCE_P2
+
+    ; Player1 sobe e Player2 desce
+    XOR AX, AX
+    MOV AL, byte[key_state_buffer + MAP_W]
+    AND AL, [key_state_buffer + MAP_BAIXO]
+    CMP AL, 1
+    JE HANDLE_SOBE_P1_DESCE_P2
+
+    ; Player1 desce e Player2 sobe
+    XOR AX, AX
+    MOV AL, byte[key_state_buffer + MAP_S]
+    AND AL, [key_state_buffer + MAP_CIMA]
+    CMP AL, 1
+    JE HANDLE_DESCE_P1_SOBE_P2
 
 		;nenhuma tecla primida, entao retorna ao inicio do loop	
 		JMP		MOVIMENTOS
+
+HANDLE_SOBE_P1:
+    CALL SOBE_P1
+    JMP MOVIMENTOS
+
+HANDLE_DESCE_P1:
+    CALL DESCE_P1
+    JMP MOVIMENTOS
+
+HANDLE_SOBE_P2:
+    CALL SOBE_P2
+    JMP MOVIMENTOS
+
+HANDLE_DESCE_P2:
+    CALL DESCE_P2
+    JMP MOVIMENTOS
+
+HANDLE_SOBE_P1_SOBE_P2:
+    CALL SOBE_P1
+    CALL SOBE_P2
+    JMP MOVIMENTOS
+
+HANDLE_DESCE_P1_DESCE_P2:
+    CALL DESCE_P1
+    CALL DESCE_P2
+    JMP MOVIMENTOS
+
+HANDLE_SOBE_P1_DESCE_P2:
+    CALL SOBE_P1
+    CALL DESCE_P2
+    JMP MOVIMENTOS
+
+HANDLE_DESCE_P1_SOBE_P2:
+    CALL DESCE_P1
+    CALL SOBE_P2
+    JMP MOVIMENTOS
+
+
 FIM:
 
     ;restaura o tratamento padrao da interrupçao 9h
@@ -241,142 +320,6 @@ APAGA_MSG_FECHA:
 		INC		DL							;avanca a coluna
     	LOOP 	APAGA_MSG_FECHA
 		JMP	NEAR ZERA 
-
-DESCE_P1:
-		;verifica se atingiu o limite do mapa
-		CMP     word[y1_p1], 41
-		JE	NEAR ZERA
-		;apaga posiçao atual
-		MOV		byte[cor], preto
-		MOV		AX, [x1_p1]
-		PUSH	AX
-		MOV		AX, [y1_p1]
-		PUSH	AX
-		MOV		AX, [x2_p1]
-		PUSH	AX
-		MOV		AX, [y2_p1]
-		PUSH	AX
-		CALL RETANGULO
-		
-		;move
-		MOV		byte[cor], azul
-		SUB		word[y2_p1], 4	
-		SUB		word[y1_p1], 4
-
-		;printa em nova posiçao
-		MOV		AX, [x1_p1]
-		PUSH	AX
-		MOV		AX, [y1_p1]
-		PUSH	AX
-		MOV		AX, [x2_p1]
-		PUSH	AX
-		MOV		AX, [y2_p1]
-		PUSH	AX
-		CALL RETANGULO
-
-		JMP ZERA
-
-DESCE_P2:
-		;verifica se atingiu o limite do mapa
-		CMP     word[y1_p2], 41
-		JE	NEAR ZERA
-		;apaga posiçao atual
-		MOV		byte[cor], preto
-		MOV		AX, [x1_p2]
-		PUSH	AX
-		MOV		AX, [y1_p2]
-		PUSH	AX
-		MOV		AX, [x2_p2]
-		PUSH	AX
-		MOV		AX, [y2_p2]
-		PUSH	AX
-		CALL RETANGULO
-		
-		;move
-		MOV		byte[cor], magenta
-		SUB		word[y2_p2], 4	
-		SUB		word[y1_p2], 4
-
-		;printa em nova posiçao
-		MOV		AX, [x1_p2]
-		PUSH	AX
-		MOV		AX, [y1_p2]
-		PUSH	AX
-		MOV		AX, [x2_p2]
-		PUSH	AX
-		MOV		AX, [y2_p2]
-		PUSH	AX
-		CALL RETANGULO
-
-		JMP	ZERA
-
-SOBE_P2:
-		;verifica se atingiu o limite do mapa
-		CMP     word[y2_p2], 439
-		JE	NEAR ZERA
-		;apaga posiçao atual
-		MOV		byte[cor], preto
-		MOV		AX, [x1_p2]
-		PUSH	AX
-		MOV		AX, [y1_p2]
-		PUSH	AX
-		MOV		AX, [x2_p2]
-		PUSH	AX
-		MOV		AX, [y2_p2]
-		PUSH	AX
-		CALL RETANGULO
-		
-		;move
-		MOV		byte[cor], magenta
-		ADD		word[y2_p2], 4	
-		ADD		word[y1_p2], 4
-
-		;printa em nova posiçao
-		MOV		AX, [x1_p2]
-		PUSH	AX
-		MOV		AX, [y1_p2]
-		PUSH	AX
-		MOV		AX, [x2_p2]
-		PUSH	AX
-		MOV		AX, [y2_p2]
-		PUSH	AX
-		CALL RETANGULO
-
-		JMP	NEAR ZERA
-
-SOBE_P1:
-		;verifica se atingiu o limite do mapa
-		CMP     word[y2_p1], 439
-		JE NEAR ZERA
-		;apaga posiçao atual
-		MOV		byte[cor], preto
-		MOV		AX, [x1_p1]
-		PUSH	AX
-		MOV		AX, [y1_p1]
-		PUSH	AX
-		MOV		AX, [x2_p1]
-		PUSH	AX
-		MOV		AX, [y2_p1]
-		PUSH	AX
-		CALL RETANGULO
-		
-		;move
-		MOV		byte[cor], azul
-		ADD		word[y2_p1], 4	
-		ADD		word[y1_p1], 4
-
-		;printa em nova posiçao
-		MOV		AX, [x1_p1]
-		PUSH	AX
-		MOV		AX, [y1_p1]
-		PUSH	AX
-		MOV		AX, [x2_p1]
-		PUSH	AX
-		MOV		AX, [y2_p1]
-		PUSH	AX
-		CALL RETANGULO
-
-		JMP	NEAR ZERA
 
 ;Salva o endereço do tratamento padrao da interrupçao 9h	
 CONFIG_PIC:	
@@ -609,6 +552,18 @@ verifica2 dw 0
 
 save_segment dw 1
 save_offset	dw 1
+
+; player 1 posiçao
+x1_p1 dw 50
+x2_p1 dw 70
+y1_p1 dw 205
+y2_p1 dw 275
+ 
+;player 2 posiçao
+x1_p2 dw 570
+x2_p2 dw 590
+y1_p2 dw 205
+y2_p2 dw 275
 
 %include "src\defs.asm"
 
