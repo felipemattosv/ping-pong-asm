@@ -82,6 +82,9 @@ Y1_Bloco5 equ 41
 Y2_Bloco5 equ 111
 ;----------------------------
 
+cmp_delimit_sup equ 439
+cmp_delimit_inf equ 41
+;----------------------------
 linha dw 0
 coluna dw 0
 deltax dw	0

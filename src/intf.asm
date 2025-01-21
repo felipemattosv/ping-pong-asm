@@ -1,7 +1,7 @@
 ; Arquivo com as funções de interface
 
-global MENU, RETANGULO, DESENHA_LINHAS_DELIMIT, DESENHA_BLOCOS_P1_E_P2, SOBE_P1, SOBE_P2, DESCE_P1, DESCE_P2
-extern cor, line, cursor, caracter, x1_p1, x2_p1, y1_p1, y2_p1, x1_p2, x2_p2, y1_p2, y2_p2
+global MENU, RETANGULO, DESENHA_LINHA_DELIMIT_SUP, DESENHA_LINHA_DELIMIT_INF, DESENHA_BLOCOS_P1_E_P2, DESENHA_P1, DESENHA_P2, SOBE_P1, SOBE_P2, DESCE_P1, DESCE_P2, DESENHA_BOLA, MOVIMENTA_BOLA
+extern cor, game_over, line, cursor, caracter, full_circle, x1_p1, x2_p1, y1_p1, y2_p1, x1_p2, x2_p2, y1_p2, y2_p2, x_centro_bola, y_centro_bola, r_bola, vel_bola_x, vel_bola_y, status_blocos_p1, status_blocos_p2
 
 ; Gera o menu inicial
 MENU:
@@ -107,11 +107,33 @@ PREENCHE:
 		POP 	BP
 		RET   8
 
-DESENHA_LINHAS_DELIMIT:
+DESENHA_LINHA_DELIMIT_SUP:
   PUSHF
   PUSH AX
 
-;cria linha delimitadora inferior 
+		;cria linha delimitadora superior
+    MOV		byte[cor], branco_intenso					
+		XOR 	AX, AX
+		MOV 	AX, 40
+		PUSH 	AX
+		MOV 	AX, 440
+		PUSH 	AX
+		MOV 	AX, 600
+		PUSH 	AX
+		MOV 	AX, 440
+		PUSH 	AX
+		CALL 	line
+
+    POP AX
+    POPF
+
+    RET
+
+DESENHA_LINHA_DELIMIT_INF:
+  PUSHF
+  PUSH AX
+
+    ;cria linha delimitadora inferior 
 		MOV		byte[cor], branco_intenso					
 		XOR 	AX, AX
 		MOV 	AX, 40
@@ -121,17 +143,6 @@ DESENHA_LINHAS_DELIMIT:
 		MOV 	AX, 600
 		PUSH 	AX
 		MOV 	AX, 40
-		PUSH 	AX
-		CALL 	line
-
-		;cria linha delimitadora superior
-		MOV 	AX, 40
-		PUSH 	AX
-		MOV 	AX, 440
-		PUSH 	AX
-		MOV 	AX, 600
-		PUSH 	AX
-		MOV 	AX, 440
 		PUSH 	AX
 		CALL 	line
 
@@ -281,8 +292,19 @@ DESENHA_BLOCOS_P1_E_P2:
     PUSH  AX
     CALL	RETANGULO
 
+    ; Restaura contexto
+    POP AX
+    MOV byte[cor], AL
+    POP AX
+    RET
+
+DESENHA_P1:
+    ; Salva contexto
+    PUSHF
+    PUSH AX
+
     ; player 1
-    MOV byte[cor], azul_claro
+    MOV byte[cor], azul
 
     MOV 	AX, word[x1_p1]
     PUSH 	AX
@@ -294,7 +316,18 @@ DESENHA_BLOCOS_P1_E_P2:
     PUSH  AX
     CALL	RETANGULO
 
-    ; player 2
+    ; Restaura contexto
+    POP AX
+    POPF
+
+    RET
+
+DESENHA_P2:
+    ; Salva contexto
+    PUSHF
+    PUSH AX
+
+    ; player 1
     MOV byte[cor], magenta
 
     MOV 	AX, word[x1_p2]
@@ -309,8 +342,8 @@ DESENHA_BLOCOS_P1_E_P2:
 
     ; Restaura contexto
     POP AX
-    MOV byte[cor], AL
-    POP AX
+    POPF
+
     RET
 
 SOBE_P1:
@@ -486,6 +519,222 @@ DESCE_P2:
     POPF
 
 		RET
+
+DESENHA_BOLA:
+    ; Salva contexto
+    PUSHF
+    PUSH AX
+
+    MOV AX, [x_centro_bola]
+    PUSH AX
+    MOV AX, [y_centro_bola]
+    PUSH AX
+    MOV AX, [r_bola]
+    PUSH AX
+    CALL full_circle
+
+    ; Restaura contexto
+    POP AX
+    POPF
+
+    RET
+
+MOVIMENTA_BOLA:
+    ; Salva contexto
+    PUSHF
+    PUSH AX
+
+    ; Apaga a bola
+    MOV byte[cor], preto
+    CALL DESENHA_BOLA
+
+    ; Colisao parede superior ------------------
+    colisao_parede_sup:
+    XOR AX, AX
+    MOV AX, [y_centro_bola]
+    ADD AX, [r_bola]
+    CMP AX, cmp_delimit_sup
+    JL colisao_parede_inf
+
+    ; ajusta velocidade
+    MOV AX, [vel_bola_y]
+    NOT AX
+    INC AX
+    MOV [vel_bola_y], AX
+    ; ajusta linha superior
+    CALL DESENHA_LINHA_DELIMIT_SUP
+    JMP MOVER ; --------------------------------
+
+    ; Colisao parede inferior ------------------
+    colisao_parede_inf:
+    XOR AX, AX
+    MOV AX, [y_centro_bola]
+    SUB AX, [r_bola]
+    CMP AX, cmp_delimit_inf
+    JG colisao_p1
+
+    ; ajusta velocidade
+    MOV AX, [vel_bola_y]
+    NOT AX
+    INC AX
+    MOV [vel_bola_y], AX
+    ; ajusta linha inferior
+    CALL DESENHA_LINHA_DELIMIT_INF
+    JMP MOVER ; --------------------------------
+
+    colisao_p1: ; ------------------------------
+    XOR AX, AX
+    MOV AX, [x_centro_bola]
+    SUB AX, [r_bola]
+    CMP AX, [x2_p1]
+    JG colisao_p2
+
+    XOR AX, AX
+    MOV AX, [y_centro_bola]
+    ADD AX, [r_bola]
+    CMP AX, [y1_p1]
+    JL colisao_p2
+
+    XOR AX, AX
+    MOV AX, [y_centro_bola]
+    SUB AX, [r_bola]
+    CMP AX, [y2_p1]
+    JG colisao_p2
+
+    ; ajusta velocidade
+    MOV AX, [vel_bola_x]
+    NOT AX
+    INC AX
+    MOV [vel_bola_x], AX
+
+    fim_colisao_p1:
+    CALL DESENHA_P1
+    JMP MOVER ; --------------------------------
+
+    colisao_p2: ; ------------------------------
+    XOR AX, AX
+    MOV AX, [x_centro_bola]
+    ADD AX, [r_bola]
+    CMP AX, [x1_p2]
+    JL verifica_blocos_p1
+
+    XOR AX, AX
+    MOV AX, [y_centro_bola]
+    ADD AX, [r_bola]
+    CMP AX, [y1_p2]
+    JL verifica_blocos_p1
+
+    XOR AX, AX
+    MOV AX, [y_centro_bola]
+    SUB AX, [r_bola]
+    CMP AX, [y2_p2]
+    JG verifica_blocos_p1
+
+    ; ajusta velocidade
+    MOV AX, [vel_bola_x]
+    NOT AX
+    INC AX
+    MOV [vel_bola_x], AX
+    ; ajusta p2
+    CALL DESENHA_P2
+    JMP MOVER ; --------------------------------
+
+    verifica_blocos_p1: ; ----------------------
+    XOR AX, AX
+    MOV AX, [x_centro_bola]
+    SUB AX, [r_bola]
+    CMP AX, X2_Blocos_P1
+    JG verifica_blocos_p2
+
+    ; ajusta velocidade
+    MOV AX, [vel_bola_x]
+    NOT AX
+    INC AX
+    MOV [vel_bola_x], AX
+    
+    ; verifica bloco 1 ; ***********************
+    verifica_bloco1_p1:
+
+    ; compara topo da bola com a base do bloco
+    XOR AX, AX
+    MOV AX, [y_centro_bola]
+    ADD AX, [r_bola]
+    CMP AX, Y1_Bloco1
+    JL verifica_bloco2_p1
+
+    ; verifica se bloco 1 existe
+    XOR AX, AX
+    MOV AL, byte[status_blocos_p1]
+    CMP AL, 1
+    JE apaga_bloco1_p1
+    MOV WORD[game_over], 1
+    JMP fim_cmp
+
+    apaga_bloco1_p1:
+    MOV byte[status_blocos_p1], 0
+    
+    MOV byte[cor], preto
+    MOV AX, X1_Blocos_P1
+    PUSH AX
+    MOV AX, Y1_Bloco1
+    PUSH AX
+    MOV AX, X2_Blocos_P1
+    PUSH AX
+    MOV AX, Y2_Bloco1
+    PUSH AX
+    CALL RETANGULO
+    JMP fim_cmp ; ******************************
+
+    ; verifica bloco 2 SÓ COPIAR E COLAR PROS OUTROS
+    verifica_bloco2_p1:
+
+    ; verifica bloco 3
+    verifica_bloco3_p1:
+
+    ; verifica bloco 4
+    verifica_bloco4_p1:
+
+    ; verifica bloco 5
+    verifica_bloco5_p1:
+
+    JMP MOVER ; --------------------------------
+
+    verifica_blocos_p2:
+    XOR AX, AX
+    MOV AX, [x_centro_bola]
+    ADD AX, [r_bola]
+    CMP AX, X1_Blocos_P2
+    JL fim_cmp
+
+    ; ajusta velocidade
+    MOV AX, [vel_bola_x]
+    NOT AX
+    INC AX
+    MOV [vel_bola_x], AX
+    ; destroi bloco
+    JMP MOVER ; --------------------------------
+
+    fim_cmp:
+
+    MOVER:
+    ; Move a bola
+    MOV AX, [x_centro_bola]
+    ADD AX, [vel_bola_x]
+    MOV [x_centro_bola], AX
+
+    MOV AX, [y_centro_bola]
+    ADD AX, [vel_bola_y]
+    MOV [y_centro_bola], AX
+
+    ; Desenha a bola
+    MOV byte[cor], branco
+    CALL DESENHA_BOLA
+
+    ; Restaura contexto
+    POP AX
+    POPF
+
+    RET
 
 
 %include "src\defs.asm"

@@ -1,7 +1,7 @@
 ; Felipe Albuquerque e Jordano Furtado
 
-extern line, full_circle, circle, cursor, caracter, plot_xy, MENU, RETANGULO, DESENHA_BLOCOS_P1_E_P2, DESENHA_LINHAS_DELIMIT, CONFIG_VIDEO, SOBE_P1, SOBE_P2, DESCE_P1, DESCE_P2
-global cor, verifica1, verifica2, modo_anterior, x1_p1, x2_p1, y1_p1, y2_p1, x1_p2, x2_p2, y1_p2, y2_p2
+extern line, full_circle, circle, cursor, caracter, plot_xy, MENU, RETANGULO, DESENHA_BLOCOS_P1_E_P2, DESENHA_P1, DESENHA_P2, DESENHA_LINHA_DELIMIT_SUP, DESENHA_LINHA_DELIMIT_INF, CONFIG_VIDEO, SOBE_P1, SOBE_P2, DESCE_P1, DESCE_P2, DESENHA_BOLA, MOVIMENTA_BOLA
+global cor, game_over, verifica1, verifica2, modo_anterior, x1_p1, x2_p1, y1_p1, y2_p1, x1_p2, x2_p2, y1_p2, y2_p2, x_centro_bola, y_centro_bola, r_bola, vel_bola_x, vel_bola_y, status_blocos_p1, status_blocos_p2
 
 segment code
 ..start:
@@ -25,7 +25,17 @@ segment code
 init_loop:
     MOV BYTE [key_state_buffer + DI], 0 ; Define a posição atual do buffer como 0
     INC DI                              ; Incrementa o índice (DI)
-    LOOP init_loop  
+    LOOP init_loop
+
+; Inicializa o status dos blocos
+    MOV CX, 5              ; Número de posições a inicializar
+    MOV DI, 0               ; Inicializa o índice no array de status dos blocos
+
+init_loop_blocos:
+    MOV BYTE [status_blocos_p1 + DI], 1
+    MOV BYTE [status_blocos_p2 + DI], 1
+    INC DI
+    LOOP init_loop_blocos
 	
 ;Gera menu
 	  MOV	byte [cor], branco_intenso
@@ -90,7 +100,16 @@ volta_esq:
     JMP		SELECAO
 
 ;inicia o jogo, a dificuldade depende do valor de DL
-JOGO:	
+JOGO:
+    ; define velocidade da bola
+    CMP DL, 14
+    JE NEAR FACIL
+    CMP DL, 34
+    JE NEAR MEDIO
+    CMP DL, 54
+    JE NEAR DIFICIL
+    retorno_config_vel:
+
 		;apaga seta
 		MOV		byte[cor], preto					
 		CALL	cursor
@@ -100,10 +119,18 @@ JOGO:
 		CALL	MENU
 		
     ;desenha linhas delimitadoras
-    CALL   DESENHA_LINHAS_DELIMIT
+    CALL   DESENHA_LINHA_DELIMIT_SUP
+    CALL   DESENHA_LINHA_DELIMIT_INF
 
     ;desenha os blocos dos jogadores
-    	CALL 	DESENHA_BLOCOS_P1_E_P2
+    CALL 	DESENHA_BLOCOS_P1_E_P2
+
+    ;desenha jogadores
+    CALL DESENHA_P1
+    CALL DESENHA_P2
+
+    ;desenha bola no centro
+    CALL DESENHA_BOLA
 
 MOVIMENTOS:
 		;verifica se foi pausado
@@ -113,6 +140,13 @@ MOVIMENTOS:
 		;verifica se a tecla de saida foi primida e sai caso sim
 		CMP 	byte[key_state_buffer + MAP_Q], 1
 		JE 	NEAR MENU_FECHA
+
+    ; Movimenta a bola
+    CALL MOVIMENTA_BOLA
+
+    ; Verifica fim de jogo
+    CMP WORD[game_over], 1
+    JE NEAR FIM
 
     test_only_player1:
     XOR AX, AX
@@ -320,6 +354,22 @@ APAGA_MSG_FECHA:
 		INC		DL							;avanca a coluna
     	LOOP 	APAGA_MSG_FECHA
 		JMP	NEAR ZERA 
+
+; Define dificuldade
+FACIL:
+    MOV WORD [vel_bola_x], 4
+    MOV WORD [vel_bola_y], 4
+    JMP retorno_config_vel
+
+MEDIO:
+    MOV WORD [vel_bola_x], 6
+    MOV WORD [vel_bola_y], 6
+    JMP retorno_config_vel
+
+DIFICIL:
+    MOV WORD [vel_bola_x], 8
+    MOV WORD [vel_bola_y], 8
+    JMP retorno_config_vel
 
 ;Salva o endereço do tratamento padrao da interrupçao 9h	
 CONFIG_PIC:	
@@ -553,6 +603,9 @@ verifica2 dw 0
 save_segment dw 1
 save_offset	dw 1
 
+; game status
+game_over dw 0
+
 ; player 1 posiçao
 x1_p1 dw 50
 x2_p1 dw 70
@@ -564,6 +617,17 @@ x1_p2 dw 570
 x2_p2 dw 590
 y1_p2 dw 205
 y2_p2 dw 275
+
+;bola
+x_centro_bola dw 320
+y_centro_bola dw 240
+r_bola dw 20
+vel_bola_x dw 1
+vel_bola_y dw 1
+
+; blocos
+status_blocos_p1 resb 5
+status_blocos_p2 resb 5
 
 %include "src\defs.asm"
 
