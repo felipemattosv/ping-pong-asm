@@ -1,7 +1,7 @@
 ; Arquivo com as funções de interface
 
-global MENU, RETANGULO, DESENHA_LINHA_DELIMIT_SUP, DESENHA_LINHA_DELIMIT_INF, DESENHA_BLOCOS_P1_E_P2, DESENHA_P1, DESENHA_P2, SOBE_P1, SOBE_P2, DESCE_P1, DESCE_P2, DESENHA_BOLA, MOVIMENTA_BOLA
-extern cor, game_over, line, cursor, caracter, full_circle, x1_p1, x2_p1, y1_p1, y2_p1, x1_p2, x2_p2, y1_p2, y2_p2, x_centro_bola, y_centro_bola, r_bola, vel_bola_x, vel_bola_y, status_blocos_p1, status_blocos_p2
+global MENU, RETANGULO, DESENHA_LINHA_DELIMIT_SUP, DESENHA_LINHA_DELIMIT_INF, DESENHA_BLOCOS_P1_E_P2, DESENHA_P1, DESENHA_P2, SOBE_P1, SOBE_P2, DESCE_P1, DESCE_P2, DESENHA_BOLA, MOVIMENTA_BOLA, LIMPA_FIM_DE_JOGO, FIM_DE_JOGO
+extern cor, key_state_buffer,game_over, line, cursor, caracter, full_circle, circle, x1_p1, x2_p1, y1_p1, y2_p1, x1_p2, x2_p2, y1_p2, y2_p2, x_centro_bola, y_centro_bola, r_bola, vel_bola_x, vel_bola_y, status_blocos_p1, status_blocos_p2
 
 ; Gera o menu inicial
 MENU:
@@ -13,7 +13,7 @@ MENU:
 		MOV CX, 30						;número de caracteres
 		MOV BX, 0
 		MOV DH, 25						;linha 0-29
-    	MOV DL, 24						;coluna 0-79s
+    MOV DL, 24						;coluna 0-79s
 
 INSTRUCAO:									;printa a instrucao de selecao
 		CALL cursor
@@ -70,6 +70,84 @@ DIFICIL:
 		POP DX
 
 		RET
+
+FIM_DE_JOGO:
+  MOV byte[cor], preto 
+  MOV AX, 20
+  PUSH AX 
+  MOV AX, 20
+  PUSH AX
+  MOV AX, 620
+  PUSH AX
+  MOV AX, 440
+  PUSH AX
+  CALL RETANGULO
+
+  MOV byte[cor], vermelho
+  MOV CX, 11						;número de caracteres
+	MOV BX, 0
+	MOV DH, 15						;linha 0-29
+  MOV DL, 32            ;coluna 0-79
+  loop_msg_fim:
+  	CALL cursor
+    MOV AL, [BX+msg_fim]
+		CALL caracter
+    INC	BX 
+		INC	DL
+    LOOP loop_msg_fim
+
+  MOV byte[cor], branco
+  MOV CX, 29						;número de caracteres
+	MOV BX, 0
+	MOV DH, 25						;linha 0-29
+  MOV DL, 25            ;coluna 0-79
+  loop_msg_jogar_novamente:
+  	CALL cursor
+    MOV AL, [BX+msg_jogar_novamente]
+		CALL caracter
+    INC	BX 
+		INC	DL
+    LOOP loop_msg_jogar_novamente
+
+    loop_resposta:
+    CMP byte[key_state_buffer + MAP_Y], 1
+    JE saida_func
+    CMP byte[key_state_buffer + MAP_N], 1
+    JE saida_func
+    JMP loop_resposta
+
+    saida_func:
+
+    RET
+
+LIMPA_FIM_DE_JOGO:
+ MOV byte[cor], preto
+  MOV CX, 11						;número de caracteres
+	MOV BX, 0
+	MOV DH, 15						;linha 0-29
+  MOV DL, 32            ;coluna 0-79
+  loop_limpa_msg_fim:
+  	CALL cursor
+    MOV AL, [BX+msg_fim]
+		CALL caracter
+    INC	BX 
+		INC	DL
+    LOOP loop_limpa_msg_fim
+
+  MOV byte[cor], preto
+  MOV CX, 29						;número de caracteres
+	MOV BX, 0
+	MOV DH, 25						;linha 0-29
+  MOV DL, 25            ;coluna 0-79
+  loop_limpa_msg_jogar_novamente:
+  	CALL cursor
+    MOV AL, [BX+msg_jogar_novamente]
+		CALL caracter
+    INC	BX 
+		INC	DL
+    LOOP loop_limpa_msg_jogar_novamente
+  
+  RET
 
 ;desenha um retangulo preenchido. A cor ja deve estar definida.
 RETANGULO:
@@ -542,7 +620,7 @@ DESENHA_BOLA:
     PUSH AX
     MOV AX, [r_bola]
     PUSH AX
-    CALL full_circle
+    CALL circle
 
     ; Restaura contexto
     POP AX
@@ -554,6 +632,7 @@ MOVIMENTA_BOLA:
     ; Salva contexto
     PUSHF
     PUSH AX
+    PUSH BX
 
     ; Apaga a bola
     MOV byte[cor], preto
@@ -594,12 +673,78 @@ MOVIMENTA_BOLA:
     JMP MOVER ; --------------------------------
 
     colisao_p1: ; ------------------------------
+    
     XOR AX, AX
     MOV AX, [x_centro_bola]
     SUB AX, [r_bola]
     CMP AX, [x2_p1]
-    JG colisao_p2
+    JG NEAR colisao_p2
 
+    XOR BX, BX
+    XOR AX, AX
+    MOV BX, [x2_p1]
+    MOV AX, [x_centro_bola]
+    SUB AX, [r_bola]
+    SUB BX, AX
+    CMP BX, 5
+    JL NEAR colisao_meio_p1
+
+    colisao_topo_p1:
+    XOR AX, AX
+    XOR BX, BX
+    MOV AX, [y_centro_bola]
+    SUB AX, [r_bola] 
+    MOV BX, [y2_p1]
+    SUB BX, AX
+    CMP BX, 6
+    JG  colisao_base_p1
+    CMP BX, 0
+    JL NEAR colisao_p2
+
+    ;verifica se a bola vem de tras e passa o bloco caso ss
+    MOV AX, [vel_bola_x]
+    CMP AX, 0
+    JG NEAR inverte_y_p1
+
+    MOV AX, [vel_bola_x]
+    NOT AX
+    INC AX
+    MOV [vel_bola_x], AX
+    inverte_y_p1:
+    MOV AX, [vel_bola_y]
+    NOT AX
+    INC AX
+    MOV [vel_bola_y], AX
+    JMP fim_colisao_p1
+
+    colisao_base_p1:
+    XOR AX, AX
+    XOR BX, BX
+    MOV AX, [y_centro_bola]
+    ADD AX, [r_bola] 
+    MOV BX, [y1_p1]
+    SUB AX, BX
+    CMP AX, 6
+    JG  colisao_meio_p1
+    CMP AX, 0
+    JL  colisao_p2
+
+    ;verifica se a bola vem de tras e passa o bloco caso ss
+    MOV AX, [vel_bola_x]
+    CMP AX, 0
+    JG NEAR inverte_y_p1
+
+    MOV AX, [vel_bola_x]
+    NOT AX
+    INC AX
+    MOV [vel_bola_x], AX
+    MOV AX, [vel_bola_y]
+    NOT AX
+    INC AX
+    MOV [vel_bola_y], AX
+    JMP fim_colisao_p1
+
+    colisao_meio_p1:
     XOR AX, AX
     MOV AX, [y_centro_bola]
     ADD AX, [r_bola]
@@ -610,7 +755,12 @@ MOVIMENTA_BOLA:
     MOV AX, [y_centro_bola]
     SUB AX, [r_bola]
     CMP AX, [y2_p1]
-    JG colisao_p2
+    JG colisao_p2 
+    
+    ;verifica se a bola vem de tras e passa o bloco caso ss
+    MOV AX, [vel_bola_x]
+    CMP AX, 0
+    JG NEAR fim_colisao_p1
 
     ; ajusta velocidade
     MOV AX, [vel_bola_x]
@@ -620,15 +770,80 @@ MOVIMENTA_BOLA:
 
     fim_colisao_p1:
     CALL DESENHA_P1
-    JMP MOVER ; --------------------------------
+    JMP NEAR MOVER ; --------------------------------
 
     colisao_p2: ; ------------------------------
     XOR AX, AX
     MOV AX, [x_centro_bola]
     ADD AX, [r_bola]
     CMP AX, [x1_p2]
-    JL verifica_blocos_p1
+    JL NEAR verifica_blocos_p1
 
+    XOR BX, BX
+    XOR AX, AX
+    MOV BX, [x1_p2]
+    MOV AX, [x_centro_bola]
+    ADD AX, [r_bola]
+    SUB AX, BX
+    CMP AX, 5
+    JL NEAR colisao_meio_p2
+
+    colisao_topo_p2:
+    XOR AX, AX
+    XOR BX, BX
+    MOV AX, [y_centro_bola]
+    SUB AX, [r_bola] 
+    MOV BX, [y2_p2]
+    SUB BX, AX
+    CMP BX, 6
+    JG  colisao_base_p2
+    CMP BX, 0
+    JL NEAR verifica_blocos_p1
+
+    ;verifica se a bola vem de tras e passa o bloco caso ss
+    MOV AX, [vel_bola_x]
+    CMP AX, 0
+    JL NEAR inverte_y_p2
+
+    MOV AX, [vel_bola_x]
+    NOT AX
+    INC AX
+    MOV [vel_bola_x], AX
+    inverte_y_p2:
+    MOV AX, [vel_bola_y]
+    NOT AX
+    INC AX
+    MOV [vel_bola_y], AX
+    JMP fim_colisao_p2
+
+    colisao_base_p2:
+    XOR AX, AX
+    XOR BX, BX
+    MOV AX, [y_centro_bola]
+    ADD AX, [r_bola] 
+    MOV BX, [y1_p2]
+    SUB AX, BX
+    CMP AX, 6
+    JG colisao_meio_p2
+    CMP AX, 0
+    JL  verifica_blocos_p1
+
+    ;verifica se a bola vem de tras e passa o bloco caso ss
+    MOV AX, [vel_bola_x]
+    CMP AX, 0
+    JL NEAR inverte_y_p2
+
+    MOV AX, [vel_bola_x]
+    NOT AX
+    INC AX
+    MOV [vel_bola_x], AX
+    MOV AX, [vel_bola_y]
+    NOT AX
+    INC AX
+    MOV [vel_bola_y], AX
+    JMP fim_colisao_p2
+
+    colisao_meio_p2:
     XOR AX, AX
     MOV AX, [y_centro_bola]
     ADD AX, [r_bola]
@@ -641,12 +856,18 @@ MOVIMENTA_BOLA:
     CMP AX, [y2_p2]
     JG verifica_blocos_p1
 
+    ;verifica se a bola vem de tras e passa o bloco caso ss
+    MOV AX, [vel_bola_x]
+    CMP AX, 0
+    JL NEAR fim_colisao_p2
+
     ; ajusta velocidade
     MOV AX, [vel_bola_x]
     NOT AX
     INC AX
     MOV [vel_bola_x], AX
     ; ajusta p2
+    fim_colisao_p2:
     CALL DESENHA_P2
     JMP MOVER ; --------------------------------
 
@@ -742,6 +963,7 @@ MOVIMENTA_BOLA:
     CALL DESENHA_BOLA
 
     ; Restaura contexto
+    POP BX
     POP AX
     POPF
 

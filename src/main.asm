@@ -1,7 +1,7 @@
 ; Felipe Albuquerque e Jordano Furtado
 
-extern line, full_circle, circle, cursor, caracter, plot_xy, MENU, RETANGULO, DESENHA_BLOCOS_P1_E_P2, DESENHA_P1, DESENHA_P2, DESENHA_LINHA_DELIMIT_SUP, DESENHA_LINHA_DELIMIT_INF, CONFIG_VIDEO, SOBE_P1, SOBE_P2, DESCE_P1, DESCE_P2, DESENHA_BOLA, MOVIMENTA_BOLA
-global cor, game_over, verifica1, verifica2, modo_anterior, x1_p1, x2_p1, y1_p1, y2_p1, x1_p2, x2_p2, y1_p2, y2_p2, x_centro_bola, y_centro_bola, r_bola, vel_bola_x, vel_bola_y, status_blocos_p1, status_blocos_p2
+extern line, full_circle, circle, cursor, caracter, plot_xy, MENU, RETANGULO, DESENHA_BLOCOS_P1_E_P2, DESENHA_P1, DESENHA_P2, DESENHA_LINHA_DELIMIT_SUP, DESENHA_LINHA_DELIMIT_INF, CONFIG_VIDEO, SOBE_P1, SOBE_P2, DESCE_P1, DESCE_P2, DESENHA_BOLA, MOVIMENTA_BOLA, FIM_DE_JOGO, LIMPA_FIM_DE_JOGO
+global cor, key_state_buffer,game_over, verifica1, verifica2, modo_anterior, x1_p1, x2_p1, y1_p1, y2_p1, x1_p2, x2_p2, y1_p2, y2_p2, x_centro_bola, y_centro_bola, r_bola, vel_bola_x, vel_bola_y, status_blocos_p1, status_blocos_p2
 
 segment code
 ..start:
@@ -19,6 +19,7 @@ segment code
     CALL CONFIG_VIDEO
 
 ; Inicializa o key_state_buffer com zeros
+INICIO_JOGO:
     MOV CX, 11              ; Número de posições a inicializar
     MOV DI, 0               ; Inicializa o índice no buffer
 
@@ -250,7 +251,11 @@ HANDLE_DESCE_P1_SOBE_P2:
 
 FIM:
 
+        CALL FIM_DE_JOGO
+        CMP byte[key_state_buffer + MAP_Y], 1
+        JE REINICIA
     ;restaura o tratamento padrao da interrupçao 9h
+    fecha_jogo:
 		CLI								
         XOR     AX, AX					
         MOV     ES, AX					
@@ -268,6 +273,23 @@ FIM:
     ;Retorna ao DOS
     MOV AX, 4c00h
 		INT 21h
+
+REINICIA:
+    CALL LIMPA_FIM_DE_JOGO
+    XOR AX, AX
+    XOR BX, BX
+    MOV word[x_centro_bola], 320
+    MOV word[y_centro_bola], 240
+    MOV word[x1_p1], 50
+    MOV word[x2_p1], 70
+    MOV word[y1_p1], 205
+    MOV word[y2_p1], 275
+    MOV word[x1_p2], 570
+    MOV word[x2_p2], 590
+    MOV word[y1_p2], 205
+    MOV word[y2_p2], 275
+    MOV byte[game_over], 0
+    JMP NEAR INICIO_JOGO
 
 ZERA:
 	JMP MOVIMENTOS
@@ -334,7 +356,7 @@ MSG_FECHA:
 		
 TESTE:
 		CMP		byte[key_state_buffer + MAP_Y], 1
-		JE	NEAR FIM
+		JE	NEAR fecha_jogo:
 		CMP     byte[key_state_buffer + MAP_N], 1
 		JE	NEAR APAGA_FECHA
 		JMP	TESTE
@@ -357,18 +379,18 @@ APAGA_MSG_FECHA:
 
 ; Define dificuldade
 FACIL:
+    MOV WORD [vel_bola_x], 2
+    MOV WORD [vel_bola_y], 2
+    JMP retorno_config_vel
+
+MEDIO:
     MOV WORD [vel_bola_x], 4
     MOV WORD [vel_bola_y], 4
     JMP retorno_config_vel
 
-MEDIO:
+DIFICIL:
     MOV WORD [vel_bola_x], 6
     MOV WORD [vel_bola_y], 6
-    JMP retorno_config_vel
-
-DIFICIL:
-    MOV WORD [vel_bola_x], 8
-    MOV WORD [vel_bola_y], 8
     JMP retorno_config_vel
 
 ;Salva o endereço do tratamento padrao da interrupçao 9h	

@@ -29,6 +29,8 @@ menu_dificil db	'Dificil $'
 msg_pause db 'pausado $'
 msg_fecha db 'deseja sair? [y/n] $'
 selecao	db '> $'
+msg_fim db 'fim de jogo $'
+msg_jogar_novamente db 'deseja jogar novamente? [y/n]$'
 
 ; Scancode Teclas
 TECLA_DIREITA equ 4Dh
