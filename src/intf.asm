@@ -355,7 +355,7 @@ SOBE_P1:
 		CMP     word[y2_p1], 439
 		JE ignorar_sobe_p1
 
-		;apaga posiçao atual
+		;apaga parte debaixo da posiçao atual
 		MOV		byte[cor], preto
 		MOV		AX, [x1_p1]
 		PUSH	AX
@@ -363,7 +363,8 @@ SOBE_P1:
 		PUSH	AX
 		MOV		AX, [x2_p1]
 		PUSH	AX
-		MOV		AX, [y2_p1]
+		MOV		AX, [y1_p1]
+    ADD AX, 4
 		PUSH	AX
 		CALL RETANGULO
 		
@@ -372,10 +373,11 @@ SOBE_P1:
 		ADD		word[y2_p1], 4	
 		ADD		word[y1_p1], 4
 
-		;printa em nova posiçao
+		;printa parte de cima na nova posiçao
 		MOV		AX, [x1_p1]
 		PUSH	AX
-		MOV		AX, [y1_p1]
+		MOV		AX, [y2_p1]
+    SUB AX, 4
 		PUSH	AX
 		MOV		AX, [x2_p1]
 		PUSH	AX
@@ -399,7 +401,8 @@ SOBE_P2:
     ;verifica se atingiu o limite do mapa
 		CMP     word[y2_p2], 439
 		JE	ignorar_sobe_p2
-		;apaga posiçao atual
+		
+    ;apaga parte de baixo da posiçao atual
 		MOV		byte[cor], preto
 		MOV		AX, [x1_p2]
 		PUSH	AX
@@ -407,7 +410,8 @@ SOBE_P2:
 		PUSH	AX
 		MOV		AX, [x2_p2]
 		PUSH	AX
-		MOV		AX, [y2_p2]
+		MOV		AX, [y1_p2]
+    ADD AX, 4
 		PUSH	AX
 		CALL RETANGULO
 		
@@ -419,7 +423,8 @@ SOBE_P2:
 		;printa em nova posiçao
 		MOV		AX, [x1_p2]
 		PUSH	AX
-		MOV		AX, [y1_p2]
+		MOV		AX, [y2_p2]
+    SUB AX, 4
 		PUSH	AX
 		MOV		AX, [x2_p2]
 		PUSH	AX
@@ -442,11 +447,13 @@ DESCE_P1:
 		;verifica se atingiu o limite do mapa
 		CMP     word[y1_p1], 41
 		JE	ignorar_desce_p1
-		;apaga posiçao atual
+
+		;apaga topo posiçao atual
 		MOV		byte[cor], preto
 		MOV		AX, [x1_p1]
 		PUSH	AX
-		MOV		AX, [y1_p1]
+		MOV		AX, [y2_p1]
+    SUB AX, 4
 		PUSH	AX
 		MOV		AX, [x2_p1]
 		PUSH	AX
@@ -459,14 +466,15 @@ DESCE_P1:
 		SUB		word[y2_p1], 4	
 		SUB		word[y1_p1], 4
 
-		;printa em nova posiçao
+		;printa base na nova posiçao
 		MOV		AX, [x1_p1]
 		PUSH	AX
 		MOV		AX, [y1_p1]
 		PUSH	AX
 		MOV		AX, [x2_p1]
 		PUSH	AX
-		MOV		AX, [y2_p1]
+		MOV		AX, [y1_p1]
+    ADD AX, 4
 		PUSH	AX
 		CALL RETANGULO
 
@@ -485,11 +493,13 @@ DESCE_P2:
     ;verifica se atingiu o limite do mapa
 		CMP     word[y1_p2], 41
 		JE	ignorar_desce_p2
-		;apaga posiçao atual
+
+		;apaga o topo posiçao atual
 		MOV		byte[cor], preto
 		MOV		AX, [x1_p2]
 		PUSH	AX
-		MOV		AX, [y1_p2]
+		MOV		AX, [y2_p2]
+    SUB AX, 4
 		PUSH	AX
 		MOV		AX, [x2_p2]
 		PUSH	AX
@@ -509,7 +519,8 @@ DESCE_P2:
 		PUSH	AX
 		MOV		AX, [x2_p2]
 		PUSH	AX
-		MOV		AX, [y2_p2]
+		MOV		AX, [y1_p2]
+    ADD AX, 4
 		PUSH	AX
 		CALL RETANGULO
 
