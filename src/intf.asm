@@ -620,7 +620,7 @@ DESENHA_BOLA:
     PUSH AX
     MOV AX, [r_bola]
     PUSH AX
-    CALL circle
+    CALL full_circle
 
     ; Restaura contexto
     POP AX

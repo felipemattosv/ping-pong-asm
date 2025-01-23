@@ -356,7 +356,7 @@ MSG_FECHA:
 		
 TESTE:
 		CMP		byte[key_state_buffer + MAP_Y], 1
-		JE	NEAR fecha_jogo:
+		JE	NEAR fecha_jogo
 		CMP     byte[key_state_buffer + MAP_N], 1
 		JE	NEAR APAGA_FECHA
 		JMP	TESTE
@@ -379,18 +379,18 @@ APAGA_MSG_FECHA:
 
 ; Define dificuldade
 FACIL:
-    MOV WORD [vel_bola_x], 2
-    MOV WORD [vel_bola_y], 2
+    MOV WORD [vel_bola_x], 3
+    MOV WORD [vel_bola_y], 3
     JMP retorno_config_vel
 
 MEDIO:
-    MOV WORD [vel_bola_x], 4
-    MOV WORD [vel_bola_y], 4
+    MOV WORD [vel_bola_x], 5
+    MOV WORD [vel_bola_y], 5
     JMP retorno_config_vel
 
 DIFICIL:
-    MOV WORD [vel_bola_x], 6
-    MOV WORD [vel_bola_y], 6
+    MOV WORD [vel_bola_x], 7
+    MOV WORD [vel_bola_y], 7
     JMP retorno_config_vel
 
 ;Salva o endereço do tratamento padrao da interrupçao 9h	
