@@ -86,8 +86,8 @@ FIM_DE_JOGO:
   MOV byte[cor], vermelho
   MOV CX, 11						;número de caracteres
 	MOV BX, 0
-	MOV DH, 15						;linha 0-29
-  MOV DL, 32            ;coluna 0-79
+	MOV DH, 12						;linha 0-29
+  MOV DL, 33            ;coluna 0-79
   loop_msg_fim:
   	CALL cursor
     MOV AL, [BX+msg_fim]
@@ -99,8 +99,8 @@ FIM_DE_JOGO:
   MOV byte[cor], branco
   MOV CX, 29						;número de caracteres
 	MOV BX, 0
-	MOV DH, 25						;linha 0-29
-  MOV DL, 25            ;coluna 0-79
+	MOV DH, 20						;linha 0-29
+  MOV DL, 24            ;coluna 0-79
   loop_msg_jogar_novamente:
   	CALL cursor
     MOV AL, [BX+msg_jogar_novamente]
@@ -109,11 +109,45 @@ FIM_DE_JOGO:
 		INC	DL
     LOOP loop_msg_jogar_novamente
 
+    CMP word[x_centro_bola], 330
+    JG  jogador1_venceu
+    JMP jogador2_venceu
+
     loop_resposta:
     CMP byte[key_state_buffer + MAP_Y], 1
     JE saida_func
     CMP byte[key_state_buffer + MAP_N], 1
     JE saida_func
+    JMP loop_resposta
+
+    jogador1_venceu:
+    MOV byte[cor], azul
+    MOV CX, 19						;número de caracteres
+	  MOV BX, 0
+	  MOV DH, 16						;linha 0-29
+    MOV DL, 28            ;coluna 0-79  
+    msg_jogador_1:
+    CALL cursor
+    MOV AL, [BX+msg_jogador1_venceu]
+		CALL caracter
+    INC	BX 
+		INC	DL
+    LOOP msg_jogador_1
+    JMP loop_resposta
+
+    jogador2_venceu:
+        MOV byte[cor], magenta
+    MOV CX, 19						;número de caracteres
+	  MOV BX, 0
+	  MOV DH, 16						;linha 0-29
+    MOV DL, 28            ;coluna 0-79  
+    msg_jogador_2:
+    CALL cursor
+    MOV AL, [BX+msg_jogador2_venceu]
+		CALL caracter
+    INC	BX 
+		INC	DL
+    LOOP msg_jogador_2
     JMP loop_resposta
 
     saida_func:
@@ -124,8 +158,8 @@ LIMPA_FIM_DE_JOGO:
  MOV byte[cor], preto
   MOV CX, 11						;número de caracteres
 	MOV BX, 0
-	MOV DH, 15						;linha 0-29
-  MOV DL, 32            ;coluna 0-79
+	MOV DH, 12						;linha 0-29
+  MOV DL, 33            ;coluna 0-79
   loop_limpa_msg_fim:
   	CALL cursor
     MOV AL, [BX+msg_fim]
@@ -137,15 +171,32 @@ LIMPA_FIM_DE_JOGO:
   MOV byte[cor], preto
   MOV CX, 29						;número de caracteres
 	MOV BX, 0
-	MOV DH, 25						;linha 0-29
-  MOV DL, 25            ;coluna 0-79
+	MOV DH, 20						;linha 0-29
+  MOV DL, 24            ;coluna 0-79
   loop_limpa_msg_jogar_novamente:
   	CALL cursor
     MOV AL, [BX+msg_jogar_novamente]
 		CALL caracter
     INC	BX 
 		INC	DL
-    LOOP loop_limpa_msg_jogar_novamente
+    LOOP loop_limpa_msg_jogar_novamente  
+
+    limpa_jogador_venceu:
+        MOV byte[cor], preto
+    MOV CX, 19						;número de caracteres
+	  MOV BX, 0
+	  MOV DH, 16						;linha 0-29
+    MOV DL, 28            ;coluna 0-79  
+    limpa_msg_jogador:
+    CALL cursor
+    MOV AL, [BX+msg_jogador2_venceu]
+		CALL caracter
+    INC	BX 
+		INC	DL
+    LOOP limpa_msg_jogador
+    JMP fim_limpa
+    
+    fim_limpa:
   
   RET
 

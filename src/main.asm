@@ -250,7 +250,7 @@ HANDLE_DESCE_P1_SOBE_P2:
 
 
 FIM:
-
+        CALL DELAY
         CALL FIM_DE_JOGO
         CMP byte[key_state_buffer + MAP_Y], 1
         JE REINICIA

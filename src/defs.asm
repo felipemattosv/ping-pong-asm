@@ -28,6 +28,8 @@ menu_dificil db	'Dificil $'
 
 msg_pause db 'pausado $'
 msg_fecha db 'deseja sair? [y/n] $'
+msg_jogador1_venceu db '!!player 1 venceu!! $'
+msg_jogador2_venceu db '!!player 2 venceu!! $'
 selecao	db '> $'
 msg_fim db 'fim de jogo $'
 msg_jogar_novamente db 'deseja jogar novamente? [y/n]$'
