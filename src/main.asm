@@ -643,7 +643,7 @@ y2_p2 dw 275
 ;bola
 x_centro_bola dw 320
 y_centro_bola dw 240
-r_bola dw 20
+r_bola dw 12
 vel_bola_x dw 1
 vel_bola_y dw 1
 

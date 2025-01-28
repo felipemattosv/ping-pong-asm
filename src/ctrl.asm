@@ -260,7 +260,7 @@ MOVIMENTA_BOLA:
     MOV AX, [x_centro_bola]
     SUB AX, [r_bola]
     CMP AX, X2_Blocos_P1
-    JG verifica_blocos_p2
+    JG NEAR verifica_blocos_p2
 
     ; ajusta velocidade
     MOV AX, vel_bola_x
@@ -302,15 +302,127 @@ MOVIMENTA_BOLA:
 
     ; verifica bloco 2 SÓ COPIAR E COLAR PROS OUTROS
     verifica_bloco2_p1:
+    XOR AX, AX
+    MOV AX, [y_centro_bola]
+    ADD AX, [r_bola]
+    CMP AX, Y1_Bloco2
+    JL verifica_bloco3_p1
+
+    ; verifica se bloco 2 existe
+    XOR AX, AX
+    MOV AL, byte[status_blocos_p1+1]
+    CMP AL, 1
+    JE apaga_bloco2_p1
+    MOV WORD[game_over], 1
+    JMP fim_cmp
+
+    apaga_bloco2_p1:
+    MOV byte[status_blocos_p1+1], 0
+    
+    MOV byte[cor], preto
+    MOV AX, X1_Blocos_P1
+    PUSH AX
+    MOV AX, Y1_Bloco2
+    PUSH AX
+    MOV AX, X2_Blocos_P1
+    PUSH AX
+    MOV AX, Y2_Bloco2
+    PUSH AX
+    CALL RETANGULO
+    JMP fim_cmp ; ******************************
 
     ; verifica bloco 3
     verifica_bloco3_p1:
+    XOR AX, AX
+    MOV AX, [y_centro_bola]
+    ADD AX, [r_bola]
+    CMP AX, Y1_Bloco3
+    JL verifica_bloco4_p1
+
+    ; verifica se bloco 2 existe
+    XOR AX, AX
+    MOV AL, byte[status_blocos_p1+2]
+    CMP AL, 1
+    JE apaga_bloco3_p1
+    MOV WORD[game_over], 1
+    JMP fim_cmp
+
+    apaga_bloco3_p1:
+    MOV byte[status_blocos_p1+2], 0
+    
+    MOV byte[cor], preto
+    MOV AX, X1_Blocos_P1
+    PUSH AX
+    MOV AX, Y1_Bloco3
+    PUSH AX
+    MOV AX, X2_Blocos_P1
+    PUSH AX
+    MOV AX, Y2_Bloco3
+    PUSH AX
+    CALL RETANGULO
+    JMP fim_cmp ; ******************************
 
     ; verifica bloco 4
     verifica_bloco4_p1:
+    XOR AX, AX
+    MOV AX, [y_centro_bola]
+    ADD AX, [r_bola]
+    CMP AX, Y1_Bloco4
+    JL verifica_bloco5_p1
+
+    ; verifica se bloco 2 existe
+    XOR AX, AX
+    MOV AL, byte[status_blocos_p1+3]
+    CMP AL, 1
+    JE apaga_bloco4_p1
+    MOV WORD[game_over], 1
+    JMP fim_cmp
+
+    apaga_bloco4_p1:
+    MOV byte[status_blocos_p1+3], 0
+    
+    MOV byte[cor], preto
+    MOV AX, X1_Blocos_P1
+    PUSH AX
+    MOV AX, Y1_Bloco4
+    PUSH AX
+    MOV AX, X2_Blocos_P1
+    PUSH AX
+    MOV AX, Y2_Bloco4
+    PUSH AX
+    CALL RETANGULO
+    JMP fim_cmp ; ******************************
 
     ; verifica bloco 5
     verifica_bloco5_p1:
+    XOR AX, AX
+    MOV AX, [y_centro_bola]
+    ADD AX, [r_bola]
+    CMP AX, Y1_Bloco5
+    JL near MOVER
+
+    ; verifica se bloco 2 existe
+    XOR AX, AX
+    MOV AL, byte[status_blocos_p1+4]
+    CMP AL, 1
+    JE apaga_bloco5_p1
+    MOV WORD[game_over], 1
+    JMP fim_cmp
+
+    apaga_bloco5_p1:
+    MOV byte[status_blocos_p1+4], 0
+    
+    MOV byte[cor], preto
+    MOV AX, X1_Blocos_P1
+    PUSH AX
+    MOV AX, Y1_Bloco5
+    PUSH AX
+    MOV AX, X2_Blocos_P1
+    PUSH AX
+    MOV AX, Y2_Bloco5
+    PUSH AX
+    CALL RETANGULO
+    JMP fim_cmp ; ******************************
 
     JMP MOVER ; --------------------------------
 
@@ -319,14 +431,177 @@ MOVIMENTA_BOLA:
     MOV AX, [x_centro_bola]
     ADD AX, [r_bola]
     CMP AX, X1_Blocos_P2
-    JL fim_cmp
+    JL NEAR fim_cmp
 
     ; ajusta velocidade
     MOV AX, vel_bola_x
     PUSH AX
     CALL INVERTE_VELOCIDADE
-    ; destroi bloco
+
+        ; verifica bloco 1 ; ***********************
+    verifica_bloco1_p2:
+
+    ; compara topo da bola com a base do bloco
+    XOR AX, AX
+    MOV AX, [y_centro_bola]
+    ADD AX, [r_bola]
+    CMP AX, Y1_Bloco1
+    JL verifica_bloco2_p2
+
+    ; verifica se bloco 1 existe
+    XOR AX, AX
+    MOV AL, byte[status_blocos_p2]
+    CMP AL, 1
+    JE apaga_bloco1_p2
+    MOV WORD[game_over], 1
+    JMP fim_cmp
+
+    apaga_bloco1_p2:
+    MOV byte[status_blocos_p2], 0
+    
+    MOV byte[cor], preto
+    MOV AX, X1_Blocos_P2
+    PUSH AX
+    MOV AX, Y1_Bloco1
+    PUSH AX
+    MOV AX, X2_Blocos_P2
+    PUSH AX
+    MOV AX, Y2_Bloco1
+    PUSH AX
+    CALL RETANGULO
+    JMP fim_cmp ; ******************************
+
+    ; verifica bloco 2 SÓ COPIAR E COLAR PROS OUTROS
+    verifica_bloco2_p2:
+    XOR AX, AX
+    MOV AX, [y_centro_bola]
+    ADD AX, [r_bola]
+    CMP AX, Y1_Bloco2
+    JL verifica_bloco3_p2
+
+    ; verifica se bloco 2 existe
+    XOR AX, AX
+    MOV AL, byte[status_blocos_p2+1]
+    CMP AL, 1
+    JE apaga_bloco2_p2
+    MOV WORD[game_over], 1
+    JMP fim_cmp
+
+    apaga_bloco2_p2:
+    MOV byte[status_blocos_p2+1], 0
+    
+    MOV byte[cor], preto
+    MOV AX, X1_Blocos_P2
+    PUSH AX
+    MOV AX, Y1_Bloco2
+    PUSH AX
+    MOV AX, X2_Blocos_P2
+    PUSH AX
+    MOV AX, Y2_Bloco2
+    PUSH AX
+    CALL RETANGULO
+    JMP fim_cmp ; ******************************
+
+    ; verifica bloco 3
+    verifica_bloco3_p2:
+    XOR AX, AX
+    MOV AX, [y_centro_bola]
+    ADD AX, [r_bola]
+    CMP AX, Y1_Bloco3
+    JL verifica_bloco4_p2
+
+    ; verifica se bloco 2 existe
+    XOR AX, AX
+    MOV AL, byte[status_blocos_p2+2]
+    CMP AL, 1
+    JE apaga_bloco3_p2
+    MOV WORD[game_over], 1
+    JMP fim_cmp
+
+    apaga_bloco3_p2:
+    MOV byte[status_blocos_p2+2], 0
+    
+    MOV byte[cor], preto
+    MOV AX, X1_Blocos_P2
+    PUSH AX
+    MOV AX, Y1_Bloco3
+    PUSH AX
+    MOV AX, X2_Blocos_P2
+    PUSH AX
+    MOV AX, Y2_Bloco3
+    PUSH AX
+    CALL RETANGULO
+    JMP fim_cmp ; ******************************
+
+    ; verifica bloco 4
+    verifica_bloco4_p2:
+    XOR AX, AX
+    MOV AX, [y_centro_bola]
+    ADD AX, [r_bola]
+    CMP AX, Y1_Bloco4
+    JL verifica_bloco5_p2
+
+    ; verifica se bloco 2 existe
+    XOR AX, AX
+    MOV AL, byte[status_blocos_p2+3]
+    CMP AL, 1
+    JE apaga_bloco4_p2
+    MOV WORD[game_over], 1
+    JMP fim_cmp
+
+    apaga_bloco4_p2:
+    MOV byte[status_blocos_p2+3], 0
+    
+    MOV byte[cor], preto
+    MOV AX, X1_Blocos_P2
+    PUSH AX
+    MOV AX, Y1_Bloco4
+    PUSH AX
+    MOV AX, X2_Blocos_P2
+    PUSH AX
+    MOV AX, Y2_Bloco4
+    PUSH AX
+    CALL RETANGULO
+    JMP fim_cmp ; ******************************
+
+    ; verifica bloco 5
+    verifica_bloco5_p2:
+    XOR AX, AX
+    MOV AX, [y_centro_bola]
+    ADD AX, [r_bola]
+    CMP AX, Y1_Bloco5
+    JL MOVER
+
+    ; verifica se bloco 2 existe
+    XOR AX, AX
+    MOV AL, byte[status_blocos_p2+4]
+    CMP AL, 1
+    JE apaga_bloco5_p2
+    MOV WORD[game_over], 1
+    JMP fim_cmp
+
+    apaga_bloco5_p2:
+    MOV byte[status_blocos_p2+4], 0
+    
+    MOV byte[cor], preto
+    MOV AX, X1_Blocos_P2
+    PUSH AX
+    MOV AX, Y1_Bloco5
+    PUSH AX
+    MOV AX, X2_Blocos_P2
+    PUSH AX
+    MOV AX, Y2_Bloco5
+    PUSH AX
+    CALL RETANGULO
+    JMP fim_cmp ; ******************************
+
+
+
     JMP MOVER ; --------------------------------
+
+
+
+
 
     fim_cmp:
 

@@ -83,7 +83,7 @@ FIM_DE_JOGO:
   PUSH AX
   CALL RETANGULO
 
-  MOV byte[cor], vermelho
+  MOV byte[cor], branco_intenso
   MOV CX, 11						;número de caracteres
 	MOV BX, 0
 	MOV DH, 12						;linha 0-29
