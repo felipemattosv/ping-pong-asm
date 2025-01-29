@@ -42,5 +42,5 @@ Follow these steps to run the game:
      ```  
 
 6. **Enjoy!**  
-   - Player 1: Use keys `Q` and `S`.
+   - Player 1: Use keys `w` and `s`.
    - Player 2: Use keys `<arrow_up>` and `<arrow_down>`.
